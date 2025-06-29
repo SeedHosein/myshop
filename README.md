@@ -1,6 +1,8 @@
-# Cheragh Khane (چراغ خانه) E-commerce Platform
+# **Warning:The project is under development. Any use of this project is at your own risk.**
 
-Cheragh Khane is a full-featured e-commerce platform built with Django. It provides a complete online shopping experience, from product browsing to checkout, along with a powerful dashboard for store management. The project is primarily in Persian (fa-ir).
+# myshop E-commerce Platform
+
+myshop is a full-featured e-commerce platform built with Django. It provides a complete online shopping experience, from product browsing to checkout, along with a powerful dashboard for store management. The project is primarily in Persian (fa-ir).
 
 ## Key Features
 
@@ -59,7 +61,9 @@ Follow these steps to get the project running locally.
 ```bash
 git clone <repository-url>
 cd myshop
+cp .env.sample .env
 ```
+Optional: Change privacy settings in the `.env` file.
 
 ### 3. Set Up Virtual Environment
 
