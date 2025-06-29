@@ -181,7 +181,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # EMAIL_USE_TLS = True
 # EMAIL_HOST_USER = 'your_email@example.com'
 # EMAIL_HOST_PASSWORD = 'your_email_password'
-# DEFAULT_FROM_EMAIL = 'webmaster@cheraghkhane.com' 
+# DEFAULT_FROM_EMAIL = 'webmaster@myshop.com' 
 
 # CKEditor Configuration
 # CKEDITOR_UPLOAD_PATH = "uploads/" # Store uploads in MEDIA_ROOT/uploads/

@@ -115,7 +115,7 @@ class UserPasswordResetView(AuthPasswordResetView):
     email_template_name = 'accounts/password_reset_email.html' # You need to create this email template
     subject_template_name = 'accounts/password_reset_subject.txt' # And this subject template
     success_url = reverse_lazy('accounts:password_reset_done')
-    from_email = 'noreply@cheraghkhane.com' # Replace with your actual sending email
+    from_email = 'noreply@myshop.com' # Replace with your actual sending email
 
 class UserPasswordResetDoneView(AuthPasswordResetDoneView):
     template_name = 'accounts/password_reset_done.html'
