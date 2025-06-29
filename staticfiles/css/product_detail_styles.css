@@ -1,0 +1,129 @@
+/* Product Detail Page Specific Styles */
+.product-detail-page {
+    /* Add specific container styling if needed */
+}
+
+.product-gallery .main-image-container {
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    background-color: #fff;
+}
+
+.main-product-image {
+    max-width: 100%;
+    height: auto;
+    max-height: 450px; /* Limit height */
+    display: block;
+    margin: 0 auto;
+    object-fit: contain;
+}
+
+.thumbnail-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px; /* Spacing between thumbnails */
+}
+
+.product-thumbnail {
+    width: 80px; /* Adjust as needed */
+    height: 80px; /* Adjust as needed */
+    object-fit: cover;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+.product-thumbnail:hover, .product-thumbnail.active {
+    border-color: #007bff;
+}
+
+.product-info .product-title {
+    font-size: 2em;
+    margin-bottom: 10px;
+}
+
+.product-info .product-category {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-bottom: 15px;
+}
+
+.product-info .price-section .original-price {
+    font-size: 1em;
+    margin-left: 10px; /* RTL */
+}
+html[dir="ltr"] .product-info .price-section .original-price {
+    margin-left: 0;
+    margin-right: 10px;
+}
+
+.product-info .price-section .current-price {
+    font-size: 1.8em;
+}
+
+.product-info .product-stock {
+    font-size: 1.1em;
+    margin-bottom: 15px;
+}
+
+.product-info .short-description {
+    font-size: 1.1em;
+    margin-bottom: 20px;
+}
+
+.add-to-cart-form .quantity-input {
+    max-width: 70px;
+    text-align: center;
+}
+
+.full-description {
+    margin-top: 10px;
+    line-height: 1.7;
+}
+
+/* Video embeds */
+.product-videos .video-item {
+    margin-bottom: 20px;
+}
+
+.embed-responsive {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    overflow: hidden;
+}
+
+.embed-responsive::before {
+    display: block;
+    content: "";
+}
+
+.embed-responsive .embed-responsive-item,
+.embed-responsive iframe,
+.embed-responsive embed,
+.embed-responsive object,
+.embed-responsive video {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.embed-responsive-16by9::before {
+    padding-top: 56.25%;
+}
+
+.badge.bg-info {
+    color: #fff;
+    background-color: #17a2b8;
+    padding: 0.3em 0.6em;
+    font-size: 0.85em;
+    border-radius: 0.25rem;
+} 

@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Always be aware of user access to every page. Especially admin pages and dashboard apps.

@@ -1,0 +1,91 @@
+{% extends 'dashboard/_base_dashboard.html' %}
+{% load humanize %}
+{% load jalali_tags %}
+{% load dashboard_extras %}
+
+{% block page_title %}جزئیات سفارش #{{ order.id }}{% endblock page_title %}
+
+{% block page_header %}جزئیات سفارش #{{ order.id }}{% endblock page_header %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">آیتم‌های سفارش</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>محصول</th>
+                                <th>قیمت واحد (تومان)</th>
+                                <th class="text-center">تعداد</th>
+                                <th class="text-end">قیمت کل (تومان)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items.all %}
+                            <tr>
+                                <td>
+                                    {% if item.product %}
+                                        <a href="{{ item.product.get_absolute_url }}" target="_blank">{{ item.product_name_at_purchase }}</a>
+                                    {% else %}
+                                        {{ item.product_name_at_purchase }} (حذف شده)
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.price_at_purchase|floatformat:0|intcomma }}</td>
+                                <td class="text-center">{{ item.quantity }}</td>
+                                <td class="text-end">{{ item.get_total_price|floatformat:0|intcomma }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="fw-bold">
+                                <td colspan="3" class="text-end">جمع کل:</td>
+                                <td class="text-end">{{ order.total_amount|floatformat:0|intcomma }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">اطلاعات مشتری و ارسال</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>مشتری:</strong> {{ order.user.get_full_name|default:order.user.email }}</p>
+                <p><strong>آدرس:</strong> {{ order.shipping_address }}</p>
+                <p><strong>کد پستی:</strong> {{ order.postal_code }}</p>
+                <p><strong>تلفن:</strong> {{ order.phone_number|default:"-" }}</p>
+                <hr>
+                 <p><strong>تاریخ ثبت:</strong> {{ order.order_date|to_jalali }}</p>
+            </div>
+        </div>
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">تغییر وضعیت سفارش</h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.status.id_for_label }}" class="form-label">{{ form.status.label }}</label>
+                        {{ form.status|add_class:"form-select" }}
+                        {% for error in form.status.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{% url 'dashboard:order_list' %}" class="btn btn-secondary">بازگشت به لیست سفارشات</a>
+</div>
+{% endblock content %} 

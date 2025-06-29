@@ -1,0 +1,14 @@
+{# This is a new file: accounts/templates/accounts/profile_update.html #}
+{% extends "accounts/base_accounts.html" %}
+
+{% block title %}ویرایش پروفایل{% endblock %}
+
+{% block content %}
+    <h2>ویرایش پروفایل</h2>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn">ذخیره تغییرات</button>
+        <a href="{% url 'accounts:profile' %}" class="btn" style="background-color: #6c757d;">انصراف</a>
+    </form>
+{% endblock %} 

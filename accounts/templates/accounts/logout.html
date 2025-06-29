@@ -1,0 +1,10 @@
+{# This is a new file: accounts/templates/accounts/logout.html #}
+{% extends "accounts/base_accounts.html" %}
+
+{% block title %}خروج از حساب{% endblock %}
+
+{% block content %}
+    <h2>خروج از حساب</h2>
+    <p>شما با موفقیت از حساب کاربری خود خارج شدید.</p>
+    <p><a href="{% url 'accounts:login' %}" class="btn">ورود مجدد</a></p>
+{% endblock %} 

@@ -1,0 +1,281 @@
+{% extends 'dashboard/_base_dashboard.html' %}
+{% load humanize %} {# For number formatting like intcomma #}
+{% load dashboard_extras %}
+{% load jalali_tags %}
+
+{% block page_title %}داشبورد مدیریتی{% endblock page_title %}
+
+{% block page_header %}خلاصه وضعیت{% endblock page_header %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-xl-8 col-md-12 mb-4">
+        <div class="card shadow h-100 py-2">
+            <div class="card-body">
+                <h5 class="card-title mb-3">نمودار فروش ۱۵ روز اخیر</h5>
+                <div class="chart-container"><canvas id="salesChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4 col-md-12 mb-4">
+        <div class="card shadow h-100 py-2">
+            <div class="card-body">
+                <h5 class="card-title mb-3">فروش هفتگی</h5>
+                <div class="chart-container"><canvas id="weeklyChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card shadow h-100 py-2">
+            <div class="card-body">
+                <h5 class="card-title">آمار بازدید</h5>
+                <p>تعداد بازدید کل: {{ total_visits|default:"N/A" }}</p>
+                <p>کاربران آنلاین (لاگین شده): {{ logged_in_users|default:"N/A" }}</p>
+                <p>کاربران آنلاین (مهمان): {{ guest_users|default:"N/A" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if perms.core.view_data or request.user.is_superuser %}
+<!-- Key Metrics Row -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">فروش کل (تومان)</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_sales|floatformat:0|intcomma }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">تعداد کل سفارشات</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_orders_count|intcomma }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">سفارشات در انتظار</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_orders_count|intcomma }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-hourglass-half fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">کاربران جدید (۳۰ روز اخیر)</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ new_users_count|intcomma }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if perms.products.view_order or request.user.is_superuser %}
+<!-- Top Products and Recent Orders Row -->
+<div class="row">
+    <div class="col-lg-7 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex">
+                <h6 class="m-0 font-weight-bold text-primary">۵ محصول پرفروش</h6>
+                <a href="{% url 'dashboard:product_list' %}" class="btn btn-sm btn-outline-primary">مدیریت محصولات</a>
+            </div>
+            <div class="card-body">
+                {% if top_products_data %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">تصویر</th>
+                                <th scope="col">نام محصول</th>
+                                <th scope="col" class="text-center">تعداد فروش</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product_stat in top_products_data %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    {% if product_stat.image_url %}
+                                        <img src="{{ product_stat.image_url }}" alt="{{ product_stat.name }}" class="product-image-sm">
+                                    {% else %}
+                                        <span class="text-muted small">بدون تصویر</span>
+                                    {% endif %}
+                                </td>
+                                <td><a href="{% url 'products:product_detail' slug=product_stat.slug %}" target="_blank">{{ product_stat.name }}</a></td>
+                                <td class="text-center">{{ product_stat.total_sold|intcomma }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                    <p class="text-muted">بدون داده فروش برای محصولات پرفروش، یا خطایی در دریافت داده رخ داده است.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">سفارشات اخیر</h6>
+            </div>
+            <div class="card-body">
+                {% if recent_orders %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">شماره سفارش</th>
+                                <th scope="col">مبلغ کل</th>
+                                <th scope="col">وضعیت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td><a href="{% url 'dashboard:order_detail' order.pk %}">{{ order.order_number }}</a></td>
+                                <td>{{ order.total_amount|intcomma }}</td>
+                                <td>{{ order.get_status_display }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                    <p class="text-muted">سفارش جدیدی ثبت نشده است.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if perms.products.view_productreview or request.user.is_superuser %}
+<!-- Review Stats and Quick Links Row -->
+<div class="row">
+    <div class="col-lg-7 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">آمار نظرات محصولات</h6>
+            </div>
+            <div class="card-body">
+                <h4 class="small font-weight-bold">نظرات در انتظار تایید: <span class="float-end">{{ pending_reviews_count|intcomma }}</span></h4>
+                <div class="progress mb-4 progress-bar-container">
+                    <div class="progress-bar bg-warning" role="progressbar" style="width: {% if approved_reviews_count|add:pending_reviews_count > 0 %}{{ pending_reviews_count|default_if_none:0|mul:100|div:approved_reviews_count|add:pending_reviews_count|default_if_none:1|floatformat:0 }}{% else %}0{% endif %}%" aria-valuenow="{{ pending_reviews_count|default_if_none:0 }}" aria-valuemin="0" aria-valuemax="{{ approved_reviews_count|add:pending_reviews_count|default_if_none:1 }}"></div>
+                </div>
+                <h4 class="small font-weight-bold">نظرات تایید شده: <span class="float-end">{{ approved_reviews_count|intcomma }}</span></h4>
+                <div class="progress mb-4 progress-bar-container">
+                     <div class="progress-bar bg-success" role="progressbar" style="width: {% if approved_reviews_count|add:pending_reviews_count > 0 %}{{ approved_reviews_count|default_if_none:0|mul:100|div:approved_reviews_count|add:pending_reviews_count|default_if_none:1|floatformat:0 }}{% else %}0{% endif %}%" aria-valuenow="{{ approved_reviews_count|default_if_none:0 }}" aria-valuemin="0" aria-valuemax="{{ approved_reviews_count|add:pending_reviews_count|default_if_none:1 }}"></div>
+                </div>
+                {% if perms.reviews.view_productreview or request.user.is_superuser or request.user|in_group:'Admin,Content Creator' %}
+                    <a href="{% url 'dashboard:product_review_management' %}" class="btn btn-sm btn-outline-primary mt-2">مدیریت نظرات محصولات</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    {# Blog Management Card #}
+    {% if perms.blog.view_blogpost or request.user.is_superuser %}
+    <div class="col-lg-5 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            پست‌های وبلاگ
+                        </div>
+                        <br>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_posts_count|default:"0" }} پست ({{ published_posts_count|default:"0" }} منتشر شده)</div>
+                        <div class="mt-2">
+                            <a href="{% url 'dashboard:blog_list' %}" class="text-info">مدیریت پست‌ها</a>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-newspaper fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Recent Posts Card #}
+    {% if perms.blog.view_blogpost or request.user.is_superuser and recent_posts %}
+    <div class="col-lg-7 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">پست‌های اخیر وبلاگ</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for post in recent_posts %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <a href="{% url 'blog:post_detail' post.slug %}" target="_blank">{{ post.title }}</a>
+                        <small class="text-muted">{{ post.created_at|to_jalali }}</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock content %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block extra_js %}
+<script id="chart-data" type="application/json">
+{
+  "sales_labels": {{ sales_chart_labels|safe }},
+  "sales_data": {{ sales_chart_data|safe }},
+  "weekly_labels": {{ weekly_chart_labels|safe }},
+  "weekly_data": {{ weekly_chart_data|safe }}
+}
+</script>
+{% endblock %} 

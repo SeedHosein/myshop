@@ -1,0 +1,60 @@
+{% extends 'dashboard/_base_dashboard.html' %}
+{% load dashboard_extras %}
+
+{% block page_title %}ویرایش کاربر: {{ object.get_full_name|default:object.email }}{% endblock page_title %}
+
+{% block page_header %}ویرایش کاربر: {{ object.get_full_name|default:object.email }}{% endblock page_header %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">اطلاعات کاربر</h6>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        <p class="mb-0">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
+                    {{ form.first_name|add_class:"form-control" }}
+                    {% for error in form.first_name.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
+                    {{ form.last_name|add_class:"form-control" }}
+                    {% for error in form.last_name.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">{{ form.groups.label }}</label>
+                <div class="form-control" style="height: auto;">
+                {% for choice in form.groups %}
+                    <div class="form-check">
+                        {{ choice.tag }}
+                        <label class="form-check-label" for="{{ choice.id_for_label }}">{{ choice.choice_label }}</label>
+                    </div>
+                {% endfor %}
+                </div>
+                {% if form.groups.help_text %}<div class="form-text">{{ form.groups.help_text }}</div>{% endif %}
+                {% for error in form.groups.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+            </div>
+
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">بروزرسانی کاربر</button>
+                <a href="{% url 'dashboard:user_list' %}" class="btn btn-secondary">لغو</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %} 

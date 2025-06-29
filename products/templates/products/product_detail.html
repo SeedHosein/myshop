@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% load static %}
+{% load product_extras %}
+
+{% block title %}{{ product.name }} - جزئیات محصول | فروشگاه چراغ خانه{% endblock %}
+
+{% block extra_head %}
+<style>
+  .product-gallery-main-image {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 15px;
+    border-radius: 0.25rem;
+    border: 1px solid #dee2e6;
+  }
+  .product-gallery-thumbnails img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    transition: border-color 0.15s ease-in-out;
+  }
+  .product-gallery-thumbnails img.active-thumbnail {
+    border-color: #007bff;
+  }
+  .product-video-thumbnail {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    display: inline-block;
+    background-color: #f8f9fa;
+    text-align: center;
+    line-height: 80px; /* Vertically center icon */
+  }
+  .product-video-thumbnail i {
+    font-size: 2rem;
+    color: #007bff;
+  }
+  .nav-tabs .nav-link {
+      color: #495057;
+  }
+  .nav-tabs .nav-link.active {
+      color: #007bff;
+      border-color: #dee2e6 #dee2e6 #fff;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 product-detail-page">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'products:product_list' %}">محصولات</a></li>
+            {% for ancestor in product.category.get_ancestors %}
+                <li class="breadcrumb-item"><a href="{{ ancestor.get_absolute_url }}">{{ ancestor.name }}</a></li>
+            {% endfor %}
+            <li class="breadcrumb-item"><a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <!-- Product Gallery -->
+            <div id="product-gallery">
+                {% with main_image=product.get_main_image %}
+                    <img id="main-product-image" src="{% if main_image %}{{ main_image.image.url }}{% else %}{% static 'images/placeholder.png' %}{% endif %}" 
+                         alt="{% if main_image %}{{ main_image.alt_text|default:product.name }}{% else %}{{ product.name }}{% endif %}" 
+                         class="product-gallery-main-image img-fluid">
+                {% endwith %}
+                
+                <div class="product-gallery-thumbnails d-flex flex-wrap mt-2">
+                    {% for image in product_images %}
+                        <img src="{{ image.image.url }}" 
+                             alt="{{ image.alt_text|default:"تصویر محصول" }} {{ forloop.counter }}" 
+                             class="img-thumbnail me-2 mb-2 {% if image.is_main %}active-thumbnail{% endif %}"
+                             style="width: 100px; height: 100px; object-fit: cover; cursor: pointer;"
+                             onclick="changeMainImage('{{ image.image.url }}', this)">
+                    {% endfor %}
+                    {% for video in product_videos %}
+                        <div class="product-video-thumbnail me-2 mb-2 d-flex align-items-center justify-content-center"
+                             style="width: 100px; height: 100px; cursor: pointer; border: 1px solid #ddd; background-color: #f8f9fa;"
+                             onclick="showVideoModal('{{ video.video_url }}', '{{ video.title|default:product.name }}')">
+                             <i class="fas fa-play-circle fa-2x text-primary"></i>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <h1>{{ product.name }}</h1>
+            <p class="text-muted">دسته‌بندی: <a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a></p>
+            
+            <div class="price-section my-3">
+                {% if product.discounted_price and product.discounted_price < product.price %}
+                    <h3 class="text-danger">
+                        <del class="text-muted me-2">{{ product.price|floatformat:0 }} تومان</del>
+                        {{ product.discounted_price|floatformat:0 }} تومان
+                        <span class="badge bg-success ms-2">تخفیف!</span>
+                    </h3>
+                {% else %}
+                    <h3>{{ product.price|floatformat:0 }} تومان</h3>
+                {% endif %}
+            </div>
+
+            <p class="lead">{{ product.description_short }}</p>
+
+            {% if product.stock > 0 %}
+                <p class="text-success"><i class="fas fa-check-circle me-1"></i> موجود در انبار ({{ product.stock }} عدد موجود است)</p>
+            {% else %}
+                <p class="text-danger"><i class="fas fa-times-circle me-1"></i> ناموجود</p>
+            {% endif %}
+
+            {% if product.is_active %}
+                <form method="POST" action="#" class="add-to-cart-form my-3"> {# TODO: Update action to actual add to cart URL #}
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    <div class="input-group" style="max-width: 200px;">
+                        <input type="number" name="quantity" value="1" min="1" {% if product.stock > 0 %}max="{{ product.stock }}"{% else %}max="0" disabled{% endif %} class="form-control text-center">
+                        <button type="submit" class="btn btn-primary" {% if product.stock <= 0 or not product.is_active %}disabled{% endif %}>
+                            <i class="fas fa-shopping-cart me-1"></i> افزودن به سبد خرید
+                        </button>
+                    </div>
+                </form>
+            {% else %}
+                 <p class="alert alert-warning">این محصول در حال حاضر موجود نیست.</p>
+            {% endif %}
+
+            {% if product.product_type == 'downloadable' and product.downloadable_file %}
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-download me-1"></i> این یک محصول دانلودی است.
+                    {# Link to download might appear after purchase #}
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <!-- Product Information Tabs: Full Description, Attributes, Reviews -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="productInfoTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab" aria-controls="description" aria-selected="true">توضیحات کامل</button>
+                </li>
+                {% if product_attributes %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="attributes-tab" data-bs-toggle="tab" data-bs-target="#attributes" type="button" role="tab" aria-controls="attributes" aria-selected="false">مشخصات</button>
+                </li>
+                {% endif %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab" aria-controls="reviews" aria-selected="false">نظرات کاربران</button>
+                </li>
+            </ul>
+            <div class="tab-content pt-3" id="productInfoTabsContent">
+                <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
+                    {{ product.description_full|safe|linebreaksbr }}
+                </div>
+                {% if product_attributes %}
+                <div class="tab-pane fade" id="attributes" role="tabpanel" aria-labelledby="attributes-tab">
+                    <table class="table table-striped">
+                        <tbody>
+                            {% for attr_val in product_attributes %}
+                            <tr>
+                                <th scope="row">{{ attr_val.attribute.display_name }}</th>
+                                <td>{{ attr_val.value }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+                <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                    <p>نظرات کاربران در اینجا نمایش داده خواهد شد.</p>
+                    {# TODO: Integrate product reviews display and form #}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Modal -->
+    <div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="videoModalLabel">ویدیو محصول</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="ratio ratio-16x9">
+                        <iframe id="productVideoIframe" src="" title="Product Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function changeMainImage(newImageUrl, thumbnailElement) {
+    document.getElementById('main-product-image').src = newImageUrl;
+    // Optional: highlight active thumbnail
+    const thumbnails = document.querySelectorAll('.product-gallery-thumbnails img');
+    thumbnails.forEach(thumb => thumb.classList.remove('active-thumbnail'));
+    if (thumbnailElement) {
+        thumbnailElement.classList.add('active-thumbnail');
+    }
+}
+
+var videoModalInstance = null;
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('videoModal')) {
+        videoModalInstance = new bootstrap.Modal(document.getElementById('videoModal'));
+    }
+});
+
+function showVideoModal(videoUrl, videoTitle) {
+    const iframe = document.getElementById('productVideoIframe');
+    const modalTitle = document.getElementById('videoModalLabel');
+    
+    // Basic YouTube URL embedding (can be expanded for Vimeo etc.)
+    let embedUrl = videoUrl;
+    if (videoUrl.includes('youtube.com/watch?v=')) {
+        const videoId = videoUrl.split('v=')[1].split('&')[0];
+        embedUrl = `https://www.youtube.com/embed/${videoId}`;
+    } else if (videoUrl.includes('youtu.be/')) {
+        const videoId = videoUrl.split('youtu.be/')[1].split('?')[0];
+        embedUrl = `https://www.youtube.com/embed/${videoId}`;
+    }
+    // Add more parsers for other video platforms if needed
+    
+    iframe.src = embedUrl;
+    if (videoTitle) {
+        modalTitle.textContent = videoTitle;
+    } else {
+        modalTitle.textContent = "ویدیو محصول";
+    }
+    
+    if (videoModalInstance) {
+        videoModalInstance.show();
+    }
+
+    // Stop video when modal is closed
+    document.getElementById('videoModal').addEventListener('hidden.bs.modal', function () {
+        iframe.src = ''; // Clear src to stop video
+    });
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,78 @@
+{% extends 'dashboard/_base_dashboard.html' %}
+{% load humanize %}
+{% load jalali_tags %}
+
+{% block page_title %}مدیریت تخفیف‌ها{% endblock page_title %}
+
+{% block page_header %}مدیریت تخفیف‌ها{% endblock page_header %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">لیست تخفیف‌ها</h6>
+        {% if perms.discounts_and_campaigns.add_discount or request.user.is_superuser %}
+        <a href="{% url 'dashboard:discount_add' %}" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus"></i> افزودن تخفیف جدید
+        </a>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        {% if discounts %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>نام</th>
+                        <th>کد</th>
+                        <th>نوع</th>
+                        <th>مقدار</th>
+                        <th>حداقل مبلغ (تومان)</th>
+                        <th>تاریخ شروع</th>
+                        <th>تاریخ پایان</th>
+                        <th>وضعیت</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for discount in discounts %}
+                    <tr>
+                        <td><a href="{% url 'dashboard:discount_edit' pk=discount.pk %}">{{ discount.name }}</a></td>
+                        <td><code>{{ discount.code }}</code></td>
+                        <td>{{ discount.get_discount_type_display }}</td>
+                        <td>
+                            {% if discount.discount_type == 'percentage' %}
+                                {{ discount.value|floatformat:0 }}%
+                            {% else %}
+                                {{ discount.value|floatformat:0|intcomma }}
+                            {% endif %}
+                        </td>
+                        <td>{{ discount.min_cart_amount|floatformat:0|intcomma|default:"-" }}</td>
+                        <td>{{ discount.start_date|to_jalali }}</td>
+                        <td>{{ discount.end_date|to_jalali }}</td>
+                        <td>
+                            {% if discount.is_active %}
+                                <span class="badge bg-success">فعال</span>
+                            {% else %}
+                                <span class="badge bg-secondary">غیرفعال</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if perms.discounts_and_campaigns.change_discount or request.user.is_superuser %}
+                            <a href="{% url 'dashboard:discount_edit' pk=discount.pk %}" class="btn btn-info btn-sm" title="ویرایش"><i class="fas fa-edit"></i></a>
+                            {% endif %}
+                            {% if perms.discounts_and_campaigns.delete_discount or request.user.is_superuser %}
+                            <a href="{% url 'dashboard:discount_delete' pk=discount.pk %}" class="btn btn-danger btn-sm" title="حذف"><i class="fas fa-trash"></i></a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/_pagination.html" with page_obj=page_obj %}
+        {% else %}
+        <p class="text-center mt-3">هیچ تخفیفی یافت نشد.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %} 

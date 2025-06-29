@@ -1,0 +1,15 @@
+{# This is a new file: accounts/templates/accounts/login.html #}
+{% extends "accounts/base_accounts.html" %}
+
+{% block title %}ورود به حساب کاربری{% endblock %}
+
+{% block content %}
+    <h2>ورود به حساب کاربری</h2>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn">ورود</button>
+    </form>
+    <p><a href="{% url 'accounts:register' %}">حساب کاربری ندارید؟ ثبت نام کنید</a></p>
+    <p><a href="{% url 'accounts:password_reset' %}">رمز عبور خود را فراموش کرده اید؟</a></p>
+{% endblock %} 

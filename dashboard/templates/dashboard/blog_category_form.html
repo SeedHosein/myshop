@@ -1,0 +1,57 @@
+{% extends 'dashboard/_base_dashboard.html' %}
+{% load dashboard_extras %}
+
+{% block page_title %}{% if object %}ویرایش دسته‌بندی وبلاگ{% else %}افزودن دسته‌بندی جدید وبلاگ{% endif %}{% endblock %}
+
+{% block page_header %}{% if object %}ویرایش دسته‌بندی: {{ object.name }}{% else %}افزودن دسته‌بندی جدید وبلاگ{% endif %}{% endblock page_header %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            {% if object %}
+                اطلاعات دسته‌بندی
+            {% else %}
+                ایجاد دسته‌بندی جدید
+            {% endif %}
+        </h6>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        <p class="mb-0">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+                {{ form.name|add_class:"form-control" }}
+                {% for error in form.name.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.slug.id_for_label }}" class="form-label">{{ form.slug.label }}</label>
+                {{ form.slug|add_class:"form-control" }}
+                {% if form.slug.help_text %}<div class="form-text">{{ form.slug.help_text }}</div>{% endif %}
+                {% for error in form.slug.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    {% if object %}
+                        ذخیره تغییرات
+                    {% else %}
+                        ایجاد دسته‌بندی
+                    {% endif %}
+                </button>
+                <a href="{% url 'dashboard:blog_category_list' %}" class="btn btn-secondary">انصراف</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

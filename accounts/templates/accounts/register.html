@@ -1,0 +1,14 @@
+{# This is a new file: accounts/templates/accounts/register.html #}
+{% extends "accounts/base_accounts.html" %}
+
+{% block title %}ثبت نام کاربر جدید{% endblock %}
+
+{% block content %}
+    <h2>ثبت نام کاربر جدید</h2>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn">ثبت نام</button>
+    </form>
+    <p><a href="{% url 'accounts:login' %}">قبلا ثبت نام کرده اید؟ وارد شوید</a></p>
+{% endblock %} 

@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Separate all the css and js code from the template files and place them as separate static files in a way that is optimized for caching in the browser to increase the speed of loading the site.

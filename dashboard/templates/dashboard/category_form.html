@@ -1,0 +1,92 @@
+{% extends 'dashboard/_base_dashboard.html' %}
+{% load dashboard_extras %}
+
+{% block page_title %}
+    {% if object %}
+        ویرایش دسته‌بندی: {{ object.name }}
+    {% else %}
+        افزودن دسته‌بندی جدید
+    {% endif %}
+{% endblock page_title %}
+
+{% block page_header %}
+    {% if object %}
+        ویرایش دسته‌بندی: {{ object.name }}
+    {% else %}
+        افزودن دسته‌بندی جدید
+    {% endif %}
+{% endblock page_header %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            {% if object %}
+                اطلاعات دسته‌بندی
+            {% else %}
+                ایجاد دسته‌بندی جدید
+            {% endif %}
+        </h6>
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.media }}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        <p class="mb-0">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+                    {{ form.name|add_class:"form-control" }}
+                    {% for error in form.name.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.slug.id_for_label }}" class="form-label">{{ form.slug.label }}</label>
+                    {{ form.slug|add_class:"form-control" }}
+                    {% for error in form.slug.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.parent.id_for_label }}" class="form-label">{{ form.parent.label }}</label>
+                {{ form.parent|add_class:"form-select" }}
+                {% if form.parent.help_text %}<div class="form-text">{{ form.parent.help_text }}</div>{% endif %}
+                {% for error in form.parent.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                {{ form.description|add_class:"form-control" }}
+                {% for error in form.description.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.image.id_for_label }}" class="form-label">{{ form.image.label }}</label>
+                {{ form.image|add_class:"form-control" }}
+                {% for error in form.image.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                {% if object.image %}
+                    <img src="{{ object.image.url }}" alt="{{ object.name }}" class="img-thumbnail mt-2" style="max-height: 100px;">
+                {% endif %}
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    {% if object %}
+                        بروزرسانی دسته‌بندی
+                    {% else %}
+                        ایجاد دسته‌بندی
+                    {% endif %}
+                </button>
+                <a href="{% url 'dashboard:category_list' %}" class="btn btn-secondary">لغو</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %} 

@@ -1,0 +1,22 @@
+{% load i18n %}
+{% if page_obj.has_other_pages %}
+  <div class="pagination">
+    <span class="step-links">
+      {% if page_obj.has_previous %}
+        <a href="?page=1">&laquo; اولین</a>
+        <a href="?page={{ page_obj.previous_page_number }}">قبلی</a>
+      {% endif %}
+
+      <span class="current">
+        {% blocktrans with current_page=page_obj.number total_pages=page_obj.paginator.num_pages %}
+          صفحه {{ current_page }} از {{ total_pages }}.
+        {% endblocktrans %}
+      </span>
+
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">بعدی</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}">قبلی &raquo;</a>
+      {% endif %}
+    </span>
+  </div>
+{% endif %} 

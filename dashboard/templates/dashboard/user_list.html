@@ -1,0 +1,55 @@
+{% extends 'dashboard/_base_dashboard.html' %}
+{% load jalali_tags %}
+
+{% block page_title %}مدیریت کاربران{% endblock page_title %}
+
+{% block page_header %}مدیریت کاربران{% endblock page_header %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">لیست کاربران</h6>
+    </div>
+    <div class="card-body">
+        {% if users %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ایمیل</th>
+                        <th>نام</th>
+                        <th>گروه‌ها</th>
+                        <th>تاریخ عضویت</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td><a href="{% url 'dashboard:user_edit' pk=user.pk %}">{{ user.email }}</a></td>
+                        <td>{{ user.get_full_name|default:"-" }}</td>
+                        <td>
+                            {% for group in user.groups.all %}
+                                <span class="badge bg-secondary">{{ group.name }}</span>
+                            {% empty %}
+                                <span class="text-muted">-</span>
+                            {% endfor %}
+                        </td>
+                        <td>{{ user.date_joined|to_jalali }}</td>
+                        <td>
+                            {% if perms.auth.change_user or request.user.is_superuser %}
+                            <a href="{% url 'dashboard:user_edit' pk=user.pk %}" class="btn btn-info btn-sm" title="ویرایش"><i class="fas fa-edit"></i></a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/_pagination.html" with page_obj=page_obj %}
+        {% else %}
+        <p class="text-center mt-3">هیچ کاربری یافت نشد.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}

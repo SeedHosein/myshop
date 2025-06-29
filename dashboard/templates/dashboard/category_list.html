@@ -1,0 +1,66 @@
+{% extends 'dashboard/_base_dashboard.html' %}
+
+{% block page_title %}مدیریت دسته‌بندی‌ها{% endblock page_title %}
+
+{% block page_header %}مدیریت دسته‌بندی‌های محصولات{% endblock page_header %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">لیست دسته‌بندی‌ها</h6>
+        {% if perms.products.add_category or request.user.is_superuser %}
+        <a href="{% url 'dashboard:category_add' %}" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus"></i> ایجاد دسته‌بندی جدید
+        </a>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        {% if categories %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>نام</th>
+                        <th>نامک (Slug)</th>
+                        <th>دسته والد</th>
+                        <th>تعداد محصولات</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories %}
+                    <tr>
+                        <td>
+                            {% if category.image %}
+                                <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-item-image">
+                            {% endif %}
+                            <a href="{% url 'dashboard:category_edit' category.pk %}"><strong>{{ category.name }}</strong></a>
+                        </td>
+                        <td>{{ category.slug }}</td>
+                        <td>{{ category.parent.name|default:"-" }}</td>
+                        <td>{{ category.products.count }}</td>
+                        <td>
+                            <div class="category-actions">
+                                {% if perms.products.change_category %}
+                                <a href="{% url 'dashboard:category_edit' pk=category.pk %}" class="action-edit">ویرایش</a>
+                                {% endif %}
+                                {% if perms.products.delete_category %}
+                                <form method="post" action="{% url 'dashboard:category_delete' pk=category.pk %}" class="inline-form" onsubmit="return confirm('آیا از حذف این دسته‌بندی مطمئن هستید؟ محصولات آن بدون دسته باقی خواهند ماند.');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-reject">حذف</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include 'partials/_pagination.html' with page_obj=page_obj %}
+        {% else %}
+        <div class="alert alert-info">دسته‌بندی یافت نشد.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %} 

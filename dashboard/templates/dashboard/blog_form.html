@@ -1,0 +1,98 @@
+{% extends 'dashboard/_base_dashboard.html' %}
+{% load dashboard_extras %}
+
+{% block page_title %}{% if object %}ویرایش پست: {{ object.title }}{% else %}افزودن پست جدید{% endif %}{% endblock %}
+
+{% block page_header %}{% if object %}ویرایش پست: {{ object.title }}{% else %}افزودن پست جدید{% endif %}{% endblock page_header %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" class="dashboard-form">
+    {% csrf_token %}
+    {{ form.media }}
+    
+    {% for field in form.hidden_fields %}
+        {{ field }}
+    {% endfor %}
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}
+                <p class="mb-0">{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}</label>
+                        {{ form.title|add_class:"form-control form-control-lg" }}
+                        {% for error in form.title.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.slug.id_for_label }}" class="form-label">{{ form.slug.label }}</label>
+                        {{ form.slug|add_class:"form-control" }}
+                        {% for error in form.slug.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.content.id_for_label }}" class="form-label">{{ form.content.label }}</label>
+                        {{ form.content }}
+                        {% for error in form.content.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">تنظیمات انتشار</h6></div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.author.id_for_label }}" class="form-label">{{ form.author.label }}</label>
+                        {{ form.author|add_class:"form-select" }}
+                        {% for error in form.author.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="form-check mb-3">
+                        {{ form.is_published|add_class:"form-check-input" }}
+                        <label for="{{ form.is_published.id_for_label }}" class="form-check-label">{{ form.is_published.label }}</label>
+                        {% if form.is_published.errors %}<div class="invalid-feedback d-block">{{ form.is_published.errors|striptags }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="card shadow mb-4">
+                 <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">دسته‌بندی و برچسب</h6></div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.category.id_for_label }}" class="form-label">{{ form.category.label }}</label>
+                        {{ form.category|add_class:"form-select" }}
+                        {% for error in form.category.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.tags.id_for_label }}" class="form-label">{{ form.tags.label }}</label>
+                        {{ form.tags|add_class:"form-control" }}
+                        <div class="form-text">کلمات را با کاما (,) جدا کنید.</div>
+                         {% for error in form.tags.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="card shadow mb-4">
+                <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">تصویر شاخص</h6></div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        {{ form.image|add_class:"form-control" }}
+                        {% if object.image %}
+                            <img src="{{ object.image.url }}" alt="{{ object.title }}" class="img-thumbnail mt-2" style="max-height: 150px;">
+                        {% endif %}
+                        {% for error in form.image.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions mt-3">
+        <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+        <a href="{% url 'dashboard:blog_list' %}" class="btn btn-secondary">انصراف</a>
+    </div>
+</form>
+{% endblock content %} 

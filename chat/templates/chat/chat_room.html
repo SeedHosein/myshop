@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% translate "Live Chat Support" %} | فروشگاه چراغ خانه{% endblock %}
+
+{% block extra_head %}
+<style>
+    #chat-log { 
+        height: 400px; 
+        overflow-y: auto; 
+        border: 1px solid #ccc; 
+        padding: 10px; 
+        margin-bottom: 10px; 
+        background-color: #f9f9f9;
+    }
+    .chat-message {
+        padding: 5px 10px;
+        margin-bottom: 8px;
+        border-radius: 15px;
+        max-width: 70%;
+        word-wrap: break-word;
+    }
+    .user-message {
+        background-color: #dcf8c6;
+        margin-left: auto; /* Align to right */
+        border-bottom-right-radius: 0;
+    }
+    .agent-message {
+        background-color: #e0e0e0;
+        margin-right: auto; /* Align to left */
+        border-bottom-left-radius: 0;
+    }
+    .system-message {
+        font-style: italic;
+        color: #777;
+        text-align: center;
+        font-size: 0.9em;
+        margin-bottom: 10px;
+    }
+    .message-meta {
+        font-size: 0.75em;
+        color: #888;
+        display: block;
+        margin-top: 2px;
+    }
+    .user-message .message-meta { text-align: right; }
+    .agent-message .message-meta { text-align: left; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">{% translate "Chat with Support" %}</h3>
+                    <p class="mb-0"><small>{% translate "Session ID" %}: {{ chat_session_id }}</small></p>
+                    {% if chat_session.support_agent %}
+                        <p class="mb-0"><small>{% translate "Agent" %}: {{ chat_session.support_agent.email }}</small></p>
+                    {% else %}
+                        <p class="mb-0"><small>{% translate "Waiting for an agent..." %}</small></p>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div id="chat-log"></div>
+                    <div class="input-group mt-3">
+                        <input id="chat-message-input" type="text" class="form-control" placeholder="{% translate 'Type your message...' %}">
+                        <button id="chat-message-submit" class="btn btn-primary">{% translate "Send" %}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ chat_session_id|json_script:"chat-session-id" }}
+{{ request.user.email|json_script:"current-user-email" }}
+{{ request.user.is_staff|json_script:"current-user-is-staff" }}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const chatSessionId = JSON.parse(document.getElementById('chat-session-id').textContent);
+    const currentUserEmail = JSON.parse(document.getElementById('current-user-email').textContent);
+    const currentUserIsStaff = JSON.parse(document.getElementById('current-user-is-staff').textContent);
+
+    const chatLog = document.getElementById('chat-log');
+    const messageInput = document.getElementById('chat-message-input');
+    const messageSubmit = document.getElementById('chat-message-submit');
+
+    const chatSocket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/chat/'
+        + chatSessionId
+        + '/'
+    );
+
+    chatSocket.onopen = function(e) {
+        console.log('Chat socket opened successfully');
+        // You could send a 'user_joined' type message if needed, or fetch history here
+    };
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const messageType = data.type;
+        const messageText = data.message;
+        const senderEmail = data.sender_email;
+        const senderIsStaff = data.sender_is_staff;
+        const timestamp = data.timestamp ? new Date(data.timestamp) : new Date();
+        const formattedTime = timestamp.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('chat-message');
+
+        if (messageType === 'chat_message') {
+            if (senderEmail === currentUserEmail) { // Message from current user
+                messageElement.classList.add('user-message');
+            } else if (senderIsStaff) { // Message from an agent
+                messageElement.classList.add('agent-message');
+            } else { // Message from other user in the chat (e.g. customer, if agent is current user)
+                 messageElement.classList.add('agent-message'); // Assuming a 2-party chat for now, if not current user, it's the other party
+            }
+            messageElement.innerHTML = `<div>${messageText}</div><span class="message-meta">${senderEmail} - ${formattedTime}</span>`;
+        } else if (messageType === 'system_message') {
+            messageElement.classList.add('system-message');
+            messageElement.textContent = `${messageText} (${formattedTime})`;
+        }
+        
+        chatLog.appendChild(messageElement);
+        chatLog.scrollTop = chatLog.scrollHeight; // Auto-scroll to bottom
+    };
+
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly', e);
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('system-message');
+        messageElement.textContent = 'Disconnected from chat. Attempting to reconnect or refresh the page.';
+        chatLog.appendChild(messageElement);
+        chatLog.scrollTop = chatLog.scrollHeight;
+    };
+
+    messageInput.focus();
+    messageInput.onkeyup = function(e) {
+        if (e.key === 'Enter') {  // Enter key
+            messageSubmit.click();
+        }
+    };
+
+    messageSubmit.onclick = function(e) {
+        const message = messageInput.value;
+        if (message.trim() === '') return;
+
+        chatSocket.send(JSON.stringify({
+            'message': message
+        }));
+        messageInput.value = '';
+    };
+</script>
+{% endblock %} 

@@ -1,0 +1,40 @@
+{# This is a new file: accounts/templates/accounts/profile.html #}
+{% extends "accounts/base_accounts.html" %}
+{% load jalali_tags %}
+
+{% block title %}پروفایل کاربری - {{ profile.email }}{% endblock %}
+
+{% block content %}
+    <h2>سلام، {{ profile.first_name|default:profile.email }}!</h2>
+    <p>این صفحه پروفایل شماست.</p>
+    
+    <h3>اطلاعات شما:</h3>
+    <ul>
+        <li><strong>ایمیل:</strong> {{ profile.email|default:"-" }}</li>
+        <li><strong>شماره تلفن:</strong> {{ profile.phone_number|default:"-" }}</li>
+        <li><strong>نام:</strong> {{ profile.first_name|default:"-" }}</li>
+        <li><strong>نام خانوادگی:</strong> {{ profile.last_name|default:"-" }}</li>
+        <li><strong>کد ملی:</strong> {{ profile.national_code|default:"-" }}</li>
+        <li><strong>آدرس:</strong> {{ profile.address|default:"-" }}</li>
+        <li><strong>شهر:</strong> {{ profile.city|default:"-" }}</li>
+        <li><strong>کد پستی:</strong> {{ profile.postal_code|default:"-" }}</li>
+        <li><strong>تاریخ عضویت:</strong> {{ profile.date_joined|to_jalali:"%Y/%m/%d" }}</li>
+    </ul>
+
+    <p>
+        <a href="{% url 'accounts:profile_update' %}" class="btn">ویرایش پروفایل</a>
+        <a href="{% url 'accounts:password_change' %}" class="btn">تغییر رمز عبور</a>
+    </p>
+
+    {# Example: Display order history (requires Order model and context in view) #}
+    {% if orders %}
+    <h3>تاریخچه سفارشات اخیر:</h3>
+    <ul>
+        {% for order in orders %}
+            <li>سفارش شماره {{ order.order_number }} - وضعیت: {{ order.get_status_display }} - مبلغ کل: {{ order.total_amount }} تومان</li>
+        {% empty %}
+            <li>شما هنوز سفارشی ثبت نکرده اید.</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+{% endblock %} 

@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+The contents of the default folder "myshop/myshop/" are inside the folder "myshop/".
+The JavaScript files are located inside "static/js/".
+The Css files are located inside "static/css/".
+
+Observe object-oriented coding, especially coding templates.
+Save the css and js codes of each page in a separate file.

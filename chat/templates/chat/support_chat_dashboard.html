@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% translate "Support Chat Dashboard" %} | فروشگاه چراغ خانه{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{% translate "Support Chat Dashboard" %}</h2>
+    <p>{% translate "View and manage active customer chat sessions." %}</p>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    {% if active_sessions %}
+        <div class="list-group">
+            {% for session in active_sessions %}
+                <a href="{% url 'chat:support_join_chat' session_id=session.id %}" class="list-group-item list-group-item-action flex-column align-items-start {% if not session.support_agent %}list-group-item-warning{% endif %}">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">
+                            {% if session.user %}
+                                {% translate "Chat with" %} {{ session.user.get_full_name|default:session.user.email }}
+                            {% elif session.guest_email %}
+                                {% translate "Chat with Guest" %} {{ session.guest_email }}
+                            {% else %}
+                                {% translate "Anonymous Chat" %}
+                            {% endif %}
+                        </h5>
+                        <small class="text-muted">{% translate "Last updated" %}: {{ session.updated_at|timesince }} {% translate "ago" %}</small>
+                    </div>
+                    <p class="mb-1">
+                        {% with last_message=session.messages.last %}
+                            {% if last_message %}
+                                {{ last_message.message|truncatewords:15 }}
+                            {% else %}
+                                {% translate "No messages yet." %}
+                            {% endif %}
+                        {% endwith %}
+                    </p>
+                    <small class="text-muted">{% translate "Session ID" %}: {{ session.id }}</small><br>
+                    <small class="text-muted">
+                        {% translate "Status" %}: 
+                        {% if session.support_agent %}
+                            {% blocktranslate with agent_email=session.support_agent.email %}Assigned to: {{ agent_email }}{% endblocktranslate %}
+                        {% else %}
+                            <strong class="text-danger">{% translate "Unassigned - Needs Agent" %}</strong>
+                        {% endif %}
+                    </small>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            {% translate "There are no active chat sessions at the moment." %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

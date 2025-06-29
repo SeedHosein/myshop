@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% translate "Order Confirmation" %} | فروشگاه چراغ خانه{% endblock %}
+
+{% block content %}
+<div class="container order-confirmation-page text-center py-5">
+    {% if order %}
+        <div class="alert alert-success">
+            <h2><i class="fas fa-check-circle"></i> {% translate "Thank You for Your Order!" %}</h2>
+        </div>
+        <p class="lead">{% blocktranslate %}Your order <strong>#{{ order.order_number }}</strong> has been placed successfully.{% endblocktranslate %}</p>
+        <p>{% translate "We have received your order and will begin processing it shortly." %}</p>
+        <p>{% blocktranslate %}An email confirmation with your order details has been sent to <strong>{{ order.user.email|default:order.billing_email }}</strong>.{% endblocktranslate %}</p>
+        
+        <div class="order-details-summary my-4 p-4 border rounded bg-light" style="max-width: 600px; margin: auto;">
+            <h4>{% translate "Order Summary" %}:</h4>
+            <ul class="list-unstyled">
+                <li><strong>{% translate "Order Number" %}:</strong> {{ order.order_number }}</li>
+                <li><strong>{% translate "Order Date" %}:</strong> {{ order.order_date|date:"Y-m-d H:i" }}</li>
+                <li><strong>{% translate "Total Amount" %}:</strong> {{ order.total_amount|floatformat:0 }} {% translate "Toman" %}</li>
+                <li><strong>{% translate "Status" %}:</strong> {{ order.get_status_display }}</li>
+                <li><strong>{% translate "Shipping to" %}:</strong> {{ order.shipping_name }}, {{ order.shipping_address }}, {{ order.shipping_city }}</li>
+            </ul>
+        </div>
+
+        <p>{% translate "You can view your order history in your profile if you are a registered user." %}</p>
+        <div class="mt-4">
+            <a href="{% url 'products:product_list' %}" class="btn btn-primary me-2">{% translate "Continue Shopping" %}</a>
+            {% if request.user.is_authenticated %}
+                <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">{% translate "View My Orders" %}</a> {# Assuming profile shows orders #}
+            {% endif %}
+        </div>
+
+    {% elif error_message %}
+        <div class="alert alert-danger">
+            <h2>{% translate "Order Retrieval Error" %}</h2>
+        </div>
+        <p>{{ error_message }}</p>
+        <a href="{% url 'products:product_list' %}" class="btn btn-primary">{% translate "Go to Homepage" %}</a>
+    {% else %}
+        <div class="alert alert-info">
+            <h2>{% translate "No Order Information" %}</h2>
+        </div>
+        <p>{{ info_message|default:_("We could not find details for a recent order.") }}</p>
+        <a href="{% url 'products:product_list' %}" class="btn btn-primary">{% translate "Go to Homepage" %}</a>
+    {% endif %}
+</div>
+{% endblock %} 

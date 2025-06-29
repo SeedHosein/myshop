@@ -1,0 +1,70 @@
+{% extends 'dashboard/_base_dashboard.html' %}
+{% load dashboard_extras %}
+{% load static %}
+{% load humanize %}
+{% load jalali_tags %}
+
+{% block page_title %}لیست پست‌های وبلاگ{% endblock page_title %}
+
+{% block page_header %}مدیریت پست‌های وبلاگ{% endblock page_header %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">لیست پست‌ها</h6>
+        {% if perms.blog.add_blogpost or request.user.is_superuser %}
+        <a href="{% url 'dashboard:blog_add' %}" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus"></i> ایجاد پست جدید
+        </a>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        {% if posts %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>عنوان</th>
+                        <th>نویسنده</th>
+                        <th>دسته بندی</th>
+                        <th>وضعیت</th>
+                        <th>تاریخ ایجاد</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for post in posts %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'dashboard:blog_edit' post.pk %}">{{ post.title }}</a>
+                        </td>
+                        <td>{{ post.author.get_full_name|default:post.author.username }}</td>
+                        <td>{{ post.category.name|default:"-" }}</td>
+                        <td>
+                            {% if post.is_published %}
+                                <span class="badge bg-success">منتشر شده</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">پیش‌نویس</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ post.created_at|to_jalali }}</td>
+                        <td>
+                            {% if perms.blog.change_blogpost or request.user.is_superuser %}
+                            <a href="{% url 'dashboard:blog_edit' post.pk %}" class="btn btn-info btn-sm" title="ویرایش"><i class="fas fa-edit"></i></a>
+                            {% endif %}
+                            {% if perms.blog.delete_blogpost or request.user.is_superuser %}
+                            <a href="{% url 'dashboard:blog_delete' post.pk %}" class="btn btn-danger btn-sm" title="حذف"><i class="fas fa-trash"></i></a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include 'partials/_pagination.html' with page_obj=page_obj %}
+        {% else %}
+        <p class="text-center">هیچ پستی برای نمایش وجود ندارد.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %} 

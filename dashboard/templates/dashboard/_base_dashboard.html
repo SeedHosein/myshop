@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block page_title %}داشبورد{% endblock page_title %} - فروشگاه چراغ خانه</title>
+    {% load static %}
+    {% load dashboard_extras %}
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet" integrity="sha384-nU14brUcp6StFntEOOEBvcJm4huWjB0OcIeQ3flBFfAFhZSmTyGAiI3ePBGKaEWd" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/dashboard_styles.css' %}">
+    {% block extra_head %}{% endblock extra_head %}
+</head>
+<body class="theme-light">
+    <header class="dashboard-header">
+        <div class="header-top">
+            <h1>مدیریت فروشگاه چراغ خانه</h1>
+        <nav>
+            <ul class="main-nav">
+                <li><a href="{% url 'dashboard:dashboard_home' %}"><i class="fas fa-home"></i> خانه</a></li>
+                {% if perms.products.view_product or perms.products.view_category or perms.products.view_order or perms.products.view_productreview or request.user.is_superuser %}
+                <li class="has-submenu">
+                    <a href="#"><i class="fas fa-shopping-bag"></i> فروشگاه</a>
+                    <ul class="submenu">
+                        {% if perms.products.view_product or request.user.is_superuser %}
+                        <li><a href="{% url 'dashboard:product_list' %}">محصولات</a></li>
+                        {% endif %}
+                        {% if perms.products.view_category or request.user.is_superuser %}
+                        <li><a href="{% url 'dashboard:category_list' %}">دسته‌بندی‌ها</a></li>
+                        {% endif %}
+                        {% if perms.cart_and_orders.view_order or request.user.is_superuser %}
+                        <li><a href="{% url 'dashboard:order_list' %}">سفارشات</a></li>
+                        {% endif %}
+                        {% if perms.reviews.view_productreview or request.user.is_superuser %}
+                        <li><a href="{% url 'dashboard:product_review_management' %}">مدیریت نظرات</a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+                {% endif %}
+                {% if perms.discounts_and_campaigns.view_discount or perms.discounts_and_campaigns.view_campaign or request.user.is_superuser %}
+                <li class="has-submenu">
+                    <a href="#"><i class="fas fa-bullhorn"></i> بازاریابی</a>
+                     <ul class="submenu">
+                        {% if perms.discounts_and_campaigns.view_discount or request.user.is_superuser %}
+                        <li><a href="{% url 'dashboard:discount_list' %}">تخفیف ها</a></li>
+                        {% endif %}
+                        {% if perms.discounts_and_campaigns.view_campaign or request.user.is_superuser %}
+                        <li><a href="{% url 'dashboard:campaign_list' %}">کمپین ها</a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+                {% endif %}
+                {% if perms.blog.view_blogpost or perms.blog.view_blogcategory or perms.blog.view_blogcomment or request.user.is_superuser %}
+                <li class="has-submenu">
+                    <a href="#"><i class="fas fa-pen-square"></i> محتوا</a>
+                    <ul class="submenu">
+                        {% if perms.blog.view_blogpost or request.user.is_superuser %}
+                        <li><a href="{% url 'dashboard:blog_list' %}">پست‌های وبلاگ</a></li>
+                        {% endif %}
+                        {% if perms.blog.view_blogcategory or request.user.is_superuser %}
+                        <li><a href="{% url 'dashboard:blog_category_list' %}">دسته‌بندی‌های وبلاگ</a></li>
+                        {% endif %}
+                        {% if perms.blog.view_blogcomment or request.user.is_superuser %}
+                        <li><a href="{% url 'dashboard:blog_comment_management' %}">دیدگاه‌های وبلاگ</a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+                {% endif %}
+                {% if perms.auth.view_user or request.user.is_superuser %}
+                <li class="has-submenu">
+                    <a href="#"><i class="fas fa-users-cog"></i> مدیریت</a>
+                    <ul class="submenu">
+                        <li><a href="{% url 'dashboard:user_list' %}">مدیریت کاربران</a></li>
+                        {% if request.user.is_superuser %}
+                        <li><a href="{% url 'admin:index' %}" target="_blank">ادمین جنگو</a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+                {% endif %}
+            </ul>
+            <ul class="user-nav">
+                 <li><a href="{% url 'accounts:logout' %}">خروج <i class="fas fa-sign-out-alt"></i></a></li>
+            </ul>
+        </nav>
+        <button id="theme-switcher" class="btn"><i class="fas fa-moon"></i></button>
+    </div>
+    </header>
+
+    <main class="dashboard-main">
+        <div class="container-fluid dashboard-container py-3">
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            {% block content %}
+            <p>به داشبورد مدیریتی خوش آمدید.</p>
+            {% endblock content %}
+        </div>
+    </main>
+
+    <footer class="dashboard-footer">
+        <p>&copy; {% now "Y" %} فروشگاه چراغ خانه. تمامی حقوق محفوظ است.</p>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="{% static 'js/dashboard_scripts.js' %}"></script>
+    <script src="{% static 'js/dashboard_forms.js' %}"></script>
+    {% block extra_js %}{% endblock extra_js %}
+</body>
+</html> 

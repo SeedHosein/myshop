@@ -1,0 +1,152 @@
+{% extends "dashboard/_base_dashboard.html" %}
+{% load static %}
+{% load jalali_tags %}
+
+{% block page_title %}مدیریت دیدگاه‌های وبلاگ{% endblock page_title %}
+
+{% block page_header %}مدیریت دیدگاه‌های وبلاگ{% endblock page_header %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">مدیریت دیدگاه های وبلاگ</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:dashboard_home' %}">داشبورد</a></li>
+        <li class="breadcrumb-item active">مدیریت دیدگاه ها</li>
+    </ol>
+
+    <!-- Statistics Cards -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <a href="{% url 'dashboard:blog_comment_management' %}" class="card-link">
+                <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">همه دیدگاه‌ها</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_comments }}</div>
+                            </div>
+                            <div class="col-auto"><i class="fas fa-comments fa-2x text-gray-300"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <a href="{% url 'dashboard:blog_comment_management' %}?status=pending" class="card-link">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">در انتظار تایید</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_count }}</div>
+                            </div>
+                            <div class="col-auto"><i class="fas fa-clock fa-2x text-gray-300"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <a href="{% url 'dashboard:blog_comment_management' %}?status=approved" class="card-link">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">تایید شده</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ approved_count }}</div>
+                            </div>
+                            <div class="col-auto"><i class="fas fa-check-circle fa-2x text-gray-300"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <a href="{% url 'dashboard:blog_comment_management' %}?status=rejected" class="card-link">
+                <div class="card border-left-danger shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">رد شده</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ rejected_count }}</div>
+                            </div>
+                            <div class="col-auto"><i class="fas fa-times-circle fa-2x text-gray-300"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Comments Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">لیست دیدگاه‌ها</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>نویسنده</th>
+                            <th>متن دیدگاه</th>
+                            <th>برای پست</th>
+                            <th>تاریخ ثبت</th>
+                            <th class="text-center">وضعیت</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for comment in comments %}
+                        <tr>
+                            <td>{{ comment.name }}<br><small class="text-muted">{{ comment.email }}</small></td>
+                            <td>{{ comment.comment|truncatewords:20 }}</td>
+                            <td><a href="{% url 'blog:post_detail' comment.post.slug %}" target="_blank">{{ comment.post.title|truncatechars:30 }}</a></td>
+                            <td>{{ comment.created_at|to_jalali:"%Y/%m/%d - %H:%M" }}</td>
+                            <td class="text-center">
+                                {% if comment.status == 'approved' %}
+                                    <span class="badge bg-success">تایید شده</span>
+                                {% elif comment.status == 'pending' %}
+                                    <span class="badge bg-warning text-dark">در انتظار</span>
+                                {% elif comment.status == 'rejected' %}
+                                    <span class="badge bg-danger">رد شده</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form action="{% url 'dashboard:update_blog_comment_status' %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="comment_id" value="{{ comment.id }}">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        {% if comment.status != 'approved' and perms.blog.change_blogcomment %}
+                                            <button type="submit" name="action" value="approve" class="btn btn-success" title="تایید"><i class="fas fa-check"></i></button>
+                                        {% endif %}
+                                        {% if comment.status != 'rejected' and perms.blog.change_blogcomment %}
+                                            <button type="submit" name="action" value="reject" class="btn btn-danger" title="رد کردن"><i class="fas fa-times"></i></button>
+                                        {% endif %}
+                                        {% if comment.status != 'pending' and perms.blog.change_blogcomment %}
+                                            <button type="submit" name="action" value="pending" class="btn btn-warning" title="بازگردانی به حالت انتظار"><i class="fas fa-clock"></i></button>
+                                        {% endif %}
+                                        {% if perms.blog.delete_blogcomment %}
+                                         <button type="submit" name="action" value="delete" class="btn btn-dark" title="حذف" onclick="return confirm('آیا از حذف این دیدگاه مطمئن هستید؟')"><i class="fas fa-trash"></i></button>
+                                        {% endif %}
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">هیچ دیدگاهی برای نمایش وجود ندارد.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% include 'partials/_pagination.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- You can add specific JS for this page if needed -->
+{% endblock %} 
