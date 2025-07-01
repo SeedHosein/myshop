@@ -2,7 +2,7 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}{% translate "Checkout" %} | فروشگاه چراغ خانه{% endblock %}
+{% block title %}{% translate "Checkout" %} | فروشگاه {{ SHOP_NAME }}{% endblock %}
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'css/checkout_styles.css' %}">
@@ -11,12 +11,6 @@
 {% block content %}
 <div class="container checkout-page">
     <h1>{% translate "Checkout" %}</h1>
-
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
 
     <div class="row">
         <div class="col-md-7 shipping-form-section">
@@ -118,19 +112,19 @@
             <h2>{% translate "Order Summary" %}</h2>
             <div class="card">
                 <div class="card-body">
-                    {% if cart_summary.items %}
+                    {% if cart_items %}
                         <ul class="list-group list-group-flush">
-                            {% for item_info in cart_summary.items %}
+                            {% for item_info in cart_items %}
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <div>
                                         {{ item_info.product.name }} (x{{ item_info.quantity }})
                                     </div>
-                                    <span>{{ item_info.get_total_price|default:item_info.total_price|floatformat:0 }} {% translate "Toman" %}</span>
+                                    <span>{{ item_info.subtotal_price|floatformat:0 }} تومان</span>
                                 </li>
                             {% endfor %}
                             <li class="list-group-item d-flex justify-content-between align-items-center fw-bold mt-3">
                                 <strong>{% translate "Total" %}</strong>
-                                <strong>{{ cart_summary.total_price|floatformat:0 }} {% translate "Toman" %}</strong>
+                                <strong>{{ cart_summary.subtotal_price|floatformat:0 }} تومان</strong>
                             </li>
                         </ul>
                     {% else %}

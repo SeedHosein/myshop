@@ -15,6 +15,7 @@ from datetime import timedelta
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.cache import cache
+
 from core.models import SiteVisit, CorePermissions
 
 from discounts_and_campaigns.models import Discount, Campaign
@@ -28,6 +29,8 @@ from django.db.models import Prefetch
 from django.db.models.functions import TruncDate, TruncWeek, TruncMonth
 import json
 import os, shutil
+
+
 User = get_user_model()
 
 # --- RBAC Helper Mixins (Optional, but good for complex checks) ---
@@ -43,6 +46,11 @@ class DiscountListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 
     def get_queryset(self):
         return Discount.objects.all().order_by('-start_date')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
 
 class DiscountCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
     template_name = 'dashboard/discount_form.html'
@@ -74,7 +82,9 @@ class DiscountCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
         instance = self.get_object(pk)
         form_class = self.get_form_class()
         form = form_class(instance=instance)
-        return render(request, self.template_name, {'form': form, 'object': instance})
+        context = {'form': form, 'object': instance}
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return render(request, self.template_name, context)
 
     def post(self, request, pk=None):
         instance = self.get_object(pk)
@@ -85,7 +95,9 @@ class DiscountCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
             success_message = "تخفیف با موفقیت ایجاد شد." if not instance else "تخفیف با موفقیت بروزرسانی شد."
             messages.success(request, success_message)
             return redirect(self.success_url)
-        return render(request, self.template_name, {'form': form, 'object': instance})
+        context = {'form': form, 'object': instance}
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return render(request, self.template_name, context)
     
     def get_form_class(self):
         from django.forms import modelform_factory
@@ -97,6 +109,11 @@ class DiscountDeleteView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
     success_url = reverse_lazy('dashboard:discount_list')
     permission_required = 'discounts_and_campaigns.delete_discount'
     success_message = "تخفیف با موفقیت حذف شد."
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
 
     def post(self, request, *args, **kwargs):
         messages.success(self.request, self.success_message)
@@ -113,6 +130,11 @@ class CampaignListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 
     def get_queryset(self):
         return Campaign.objects.all().order_by('-start_date')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
 
 class CampaignCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
     template_name = 'dashboard/campaign_form.html'
@@ -143,7 +165,9 @@ class CampaignCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
         instance = self.get_object(pk)
         form_class = self.get_form_class()
         form = form_class(instance=instance)
-        return render(request, self.template_name, {'form': form, 'object': instance})
+        context = {'form': form, 'object': instance}
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return render(request, self.template_name, context)
 
     def post(self, request, pk=None):
         instance = self.get_object(pk)
@@ -154,7 +178,9 @@ class CampaignCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
             success_message = "کمپین با موفقیت ایجاد شد." if not instance else "کمپین با موفقیت بروزرسانی شد."
             messages.success(request, success_message)
             return redirect(self.success_url)
-        return render(request, self.template_name, {'form': form, 'object': instance})
+        context = {'form': form, 'object': instance}
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return render(request, self.template_name, context)
 
     def get_form_class(self):
         from django.forms import modelform_factory
@@ -166,6 +192,11 @@ class CampaignDeleteView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
     success_url = reverse_lazy('dashboard:campaign_list')
     permission_required = 'discounts_and_campaigns.delete_campaign'
     success_message = "کمپین با موفقیت حذف شد."
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
 
     def post(self, request, *args, **kwargs):
         messages.success(self.request, self.success_message)
@@ -184,6 +215,11 @@ class ProductListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         # Prefetch all images for the products. The get_main_image() method on the model
         # will then use this prefetched data, avoiding N+1 queries.
         return Product.objects.all().order_by('-created_at').prefetch_related('images')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
 
 class ProductCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
     template_name = 'dashboard/product_form.html'
@@ -216,7 +252,9 @@ class ProductCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
     def get(self, request, pk=None):
         instance = self.get_object(pk)
         form = self.get_form_class()(instance=instance)
-        return render(request, self.template_name, {'form': form, 'object': instance})
+        context = {'form': form, 'object': instance}
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return render(request, self.template_name, context)
 
     def post(self, request, pk=None):
         instance = self.get_object(pk)
@@ -226,7 +264,9 @@ class ProductCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
             success_message = "محصول با موفقیت ایجاد شد." if not instance else "محصول با موفقیت بروزرسانی شد."
             messages.success(request, success_message)
             return redirect(self.success_url)
-        return render(request, self.template_name, {'form': form, 'object': instance})
+        context = {'form': form, 'object': instance}
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return render(request, self.template_name, context)
 
 class ProductDeleteView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, DeleteView):
     model = Product
@@ -234,6 +274,11 @@ class ProductDeleteView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
     success_url = reverse_lazy('dashboard:product_list')
     permission_required = 'products.delete_product'
     success_message = "محصول با موفقیت حذف شد."
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
 
     def post(self, request, *args, **kwargs):
         messages.success(self.request, self.success_message)
@@ -247,6 +292,11 @@ class OrderListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     context_object_name = 'orders'
     permission_required = 'cart_and_orders.view_order'
     paginate_by = 20
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
 
     def get_queryset(self):
         return Order.objects.all().order_by('-order_date')
@@ -266,6 +316,11 @@ class OrderDetailView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         messages.success(self.request, self.get_success_message(form.cleaned_data))
         return super().form_valid(form)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
+
 
 # --- Category Management Views ---
 class CategoryListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
@@ -278,6 +333,11 @@ class CategoryListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     def get_queryset(self):
         # Fetch all categories, and let the template handle the hierarchy
         return Category.objects.all().order_by('parent__name', 'name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
 
 class CategoryCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
     template_name = 'dashboard/category_form.html'
@@ -310,7 +370,9 @@ class CategoryCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
     def get(self, request, pk=None):
         instance = self.get_object(pk)
         form = self.get_form_class()(instance=instance)
-        return render(request, self.template_name, {'form': form, 'object': instance})
+        context = {'form': form, 'object': instance}
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return render(request, self.template_name, context)
 
     def post(self, request, pk=None):
         instance = self.get_object(pk)
@@ -320,7 +382,9 @@ class CategoryCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
             success_message = "دسته بندی با موفقیت ایجاد شد." if not instance else "دسته بندی با موفقیت بروزرسانی شد."
             messages.success(request, success_message)
             return redirect(self.success_url)
-        return render(request, self.template_name, {'form': form, 'object': instance})
+        context = {'form': form, 'object': instance}
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return render(request, self.template_name, context)
 
 class CategoryDeleteView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, DeleteView):
     model = Category
@@ -345,6 +409,11 @@ class UserListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     def get_queryset(self):
         return User.objects.all().order_by('email')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
+
 class UserUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
     model = User
     template_name = 'dashboard/user_form.html'
@@ -352,6 +421,11 @@ class UserUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessage
     success_url = reverse_lazy('dashboard:user_list')
     permission_required = 'auth.change_user'
     success_message = "اطلاعات کاربر با موفقیت بروزرسانی شد."
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
@@ -414,6 +488,7 @@ class ProductReviewManagementView(LoginRequiredMixin, PermissionRequiredMixin, L
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
         context['review_statuses'] = ProductReview.REVIEW_STATUS_CHOICES
         context['current_status_filter'] = self.request.GET.get('status', 'all')
         return context
@@ -543,6 +618,7 @@ class DashboardHomeView(LoginRequiredMixin, PermissionRequiredMixin, View):
             'total_posts_count': total_posts_count,
             'published_posts_count': published_posts_count,
             'recent_posts': recent_posts,
+            'SHOP_NAME': settings.SHOP_NAME,
         }
         
         context.update(original_context)
@@ -564,6 +640,11 @@ class BlogListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 
     def get_queryset(self):
         return BlogPost.objects.all().order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
 
 class BlogCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
     template_name = 'dashboard/blog_form.html'
@@ -596,7 +677,9 @@ class BlogCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
     def get(self, request, pk=None):
         instance = self.get_object(pk)
         form = self.get_form_class()(instance=instance)
-        return render(request, self.template_name, {'form': form, 'object': instance})
+        context = {'form': form, 'object': instance}
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return render(request, self.template_name, context)
 
     def post(self, request, pk=None):
         instance = self.get_object(pk)
@@ -606,7 +689,9 @@ class BlogCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
             success_message = "پست وبلاگ با موفقیت ایجاد شد." if not instance else "پست وبلاگ با موفقیت بروزرسانی شد."
             messages.success(request, success_message)
             return redirect(self.success_url)
-        return render(request, self.template_name, {'form': form, 'object': instance})
+        context = {'form': form, 'object': instance}
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return render(request, self.template_name, context)
 
 class BlogDeleteView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, DeleteView):
     model = BlogPost
@@ -614,6 +699,11 @@ class BlogDeleteView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessage
     success_url = reverse_lazy('dashboard:blog_list')
     permission_required = 'blog.delete_blogpost'
     success_message = "پست وبلاگ با موفقیت حذف شد."
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
 
     def post(self, request, *args, **kwargs):
         messages.success(self.request, self.success_message)
@@ -628,6 +718,11 @@ class BlogCategoryListView(LoginRequiredMixin, PermissionRequiredMixin, ListView
 
     def get_queryset(self):
         return BlogCategory.objects.all().order_by('name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
 
 class BlogCategoryCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
     template_name = 'dashboard/blog_category_form.html'
@@ -660,7 +755,9 @@ class BlogCategoryCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View
     def get(self, request, pk=None):
         instance = self.get_object(pk)
         form = self.get_form_class()(instance=instance)
-        return render(request, self.template_name, {'form': form, 'object': instance})
+        context = {'form': form, 'object': instance}
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return render(request, self.template_name, context)
 
     def post(self, request, pk=None):
         instance = self.get_object(pk)
@@ -670,7 +767,9 @@ class BlogCategoryCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View
             success_message = "دسته بندی وبلاگ با موفقیت ایجاد شد." if not instance else "دسته بندی وبلاگ با موفقیت بروزرسانی شد."
             messages.success(request, success_message)
             return redirect(self.success_url)
-        return render(request, self.template_name, {'form': form, 'object': instance})
+        context = {'form': form, 'object': instance}
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return render(request, self.template_name, context)
 
 class BlogCategoryDeleteView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, DeleteView):
     model = BlogCategory
@@ -678,6 +777,11 @@ class BlogCategoryDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Succes
     success_url = reverse_lazy('dashboard:blog_category_list')
     permission_required = 'blog.delete_blogcategory'
     success_message = "دسته بندی وبلاگ با موفقیت حذف شد."
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
 
     def post(self, request, *args, **kwargs):
         messages.success(self.request, self.success_message)
@@ -706,6 +810,7 @@ class BlogCommentManagementView(LoginRequiredMixin, PermissionRequiredMixin, Lis
         context['pending_count'] = BlogComment.objects.filter(status=BlogComment.STATUS_PENDING).count()
         context['approved_count'] = BlogComment.objects.filter(status=BlogComment.STATUS_APPROVED).count()
         context['rejected_count'] = BlogComment.objects.filter(status=BlogComment.STATUS_REJECTED).count()
+        context['SHOP_NAME'] = settings.SHOP_NAME
         return context
 
 class UpdateBlogCommentStatusView(LoginRequiredMixin, PermissionRequiredMixin, View):

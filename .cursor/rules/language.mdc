@@ -4,3 +4,4 @@ globs:
 alwaysApply: true
 ---
 The language of all project names and texts is in fa-ir only.
+Always read the site name from the SHOP_NAME variable in the settings file.

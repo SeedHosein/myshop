@@ -14,6 +14,7 @@ from django.contrib.auth.views import (
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin # For success messages
 from django.contrib import messages # For manual messages
+from django.conf import settings
 
 from .forms import UserRegistrationForm, UserLoginForm, UserProfileUpdateForm
 from .models import UserProfile
@@ -36,6 +37,11 @@ class UserRegisterView(SuccessMessageMixin, CreateView):
         login(self.request, user, backend='accounts.backends.EmailOrPhoneBackend') # Automatically log in the user
         return response
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
+
 class UserLoginView(AuthLoginView):
     form_class = UserLoginForm
     template_name = 'accounts/login.html'
@@ -46,6 +52,11 @@ class UserLoginView(AuthLoginView):
         messages.error(self.request, "نام کاربری (ایمیل/تلفن) یا رمز عبور اشتباه است. لطفا دوباره تلاش کنید.")
         return super().form_invalid(form)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
+
 class UserLogoutView(AuthLogoutView):
     # LOGOUT_REDIRECT_URL will be used from settings.py by default
     # Or you can set next_page here: next_page = reverse_lazy('home') # Assuming you have a 'home' url pattern
@@ -55,6 +66,11 @@ class UserLogoutView(AuthLogoutView):
         response = super().dispatch(request, *args, **kwargs)
         messages.success(request, "شما با موفقیت خارج شدید.")
         return response
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
 
 
 class UserProfileView(LoginRequiredMixin, DetailView):
@@ -73,6 +89,7 @@ class UserProfileView(LoginRequiredMixin, DetailView):
             context['orders'] = Order.objects.filter(user=self.request.user).order_by('-order_date')[:10]
         except ImportError:
             context['orders'] = [] # In case Order model is not yet available or imported
+        context['SHOP_NAME'] = settings.SHOP_NAME
         return context
 
 class UserProfileUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
@@ -86,6 +103,11 @@ class UserProfileUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView)
         # Ensure users can only update their own profile
         return self.request.user
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
+
 # Password Change Views
 class UserPasswordChangeView(LoginRequiredMixin, AuthPasswordChangeView):
     template_name = 'accounts/password_change_form.html'
@@ -96,6 +118,11 @@ class UserPasswordChangeView(LoginRequiredMixin, AuthPasswordChangeView):
         messages.success(self.request, self.success_message)
         return super().form_valid(form)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
+
 # Django provides PasswordChangeDoneView automatically if you set success_url in PasswordChangeView
 # but if you want a custom template or message for it, you create it:
 from django.contrib.auth.views import PasswordChangeDoneView as AuthPasswordChangeDoneView
@@ -104,6 +131,7 @@ class UserPasswordChangeDoneView(LoginRequiredMixin, AuthPasswordChangeDoneView)
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # messages.success(self.request, "رمز عبور شما با موفقیت تغییر کرد.") # Message is now in PasswordChangeView
+        context['SHOP_NAME'] = settings.SHOP_NAME
         return context
 
 
@@ -116,13 +144,32 @@ class UserPasswordResetView(AuthPasswordResetView):
     subject_template_name = 'accounts/password_reset_subject.txt' # And this subject template
     success_url = reverse_lazy('accounts:password_reset_done')
     from_email = 'noreply@myshop.com' # Replace with your actual sending email
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
 
 class UserPasswordResetDoneView(AuthPasswordResetDoneView):
     template_name = 'accounts/password_reset_done.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
 
 class UserPasswordResetConfirmView(AuthPasswordResetConfirmView):
     template_name = 'accounts/password_reset_confirm.html'
     success_url = reverse_lazy('accounts:password_reset_complete')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
+
 class UserPasswordResetCompleteView(AuthPasswordResetCompleteView):
     template_name = 'accounts/password_reset_complete.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context

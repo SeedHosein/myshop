@@ -2,7 +2,9 @@ from django.shortcuts import render, get_object_or_404
 from django.views.generic import ListView, DetailView
 from django.http import JsonResponse
 from django.db.models import Q
+from django.conf import settings
 from .models import Product, Category, ProductImage, ProductVideo
+from cart_and_orders.models import Cart, CartItem
 
 # Create your views here.
 
@@ -22,6 +24,7 @@ class ProductListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
         context['categories'] = Category.objects.filter(parent__isnull=True) # Top-level categories
         context['current_category'] = None
         category_slug = self.kwargs.get('category_slug')
@@ -42,6 +45,7 @@ class ProductDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
         product = self.get_object()
         context['images'] = ProductImage.objects.filter(product=product)
         context['videos'] = ProductVideo.objects.filter(product=product)
@@ -60,7 +64,7 @@ class ProductSearchAPIView(ListView):
                 (Q(name__icontains=query) | 
                  Q(description_short__icontains=query) | 
                  Q(category__name__icontains=query))
-            ).distinct()[:10] # Limit results
+            ).distinct()[:12] # Limit results
             
             results = []
             for product in products:
@@ -69,8 +73,10 @@ class ProductSearchAPIView(ListView):
                 results.append({
                     'id': product.id,
                     'name': product.name,
+                    'category_name':product.category.name,
                     'slug': product.slug,
-                    'price': str(product.get_display_price), # Ensure this method exists
+                    'price': product.price,
+                    'discounted_price': product.get_display_price, # Ensure this method exists
                     'image_url': main_image.image.url if main_image else '',
                     # Add a URL to the product detail page
                     'detail_url': product.get_absolute_url() if hasattr(product, 'get_absolute_url') else '#' 

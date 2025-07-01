@@ -2,7 +2,7 @@
 {% load static %}
 {% load product_extras %}
 
-{% block title %}{{ product.name }} - جزئیات محصول | فروشگاه چراغ خانه{% endblock %}
+{% block title %}{{ product.name }} - جزئیات محصول | {{ SHOP_NAME }}{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -122,7 +122,7 @@
             {% endif %}
 
             {% if product.is_active %}
-                <form method="POST" action="#" class="add-to-cart-form my-3"> {# TODO: Update action to actual add to cart URL #}
+                <form method="POST" action="{% url 'cart_and_orders:add_to_cart' %}" class="add-to-cart-form my-3"> {# TODO: Update action to actual add to cart URL #}
                     {% csrf_token %}
                     <input type="hidden" name="product_id" value="{{ product.id }}">
                     <div class="input-group" style="max-width: 200px;">

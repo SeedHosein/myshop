@@ -5,15 +5,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}فروشگاه چراغ خانه{% endblock %}</title>
+    <title>{% block title %}فروشگاه {{ SHOP_NAME }}{% endblock title %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/base_styles.css' %}">
-    {% block extra_head %}{% endblock %}
+    {% block extra_head %}{% endblock extra_head %}
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'core:home' %}">چراغ خانه</a>
+            <a class="navbar-brand" href="{% url 'core:home' %}">{{ SHOP_NAME }}</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="باز و بسته کردن منو">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -86,18 +86,23 @@
             </div>
         {% endif %}
 
+        <h2>
+            {% block page_title %}
+            {% endblock page_title %}
+        </h2>
+
         {% block content %}
-        {% endblock %}
+        {% endblock content %}
     </div>
 
     <footer class="footer mt-auto py-3 bg-light text-center">
         <div class="container">
-            <span class="text-muted">فروشگاه چراغ خانه © {% now "Y" %}</span>
+            <span class="text-muted">فروشگاه {{ SHOP_NAME }} © {% now "Y" %}</span>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/base_scripts.js' %}"></script>
-    {% block extra_scripts %}{% endblock %}
+    {% block extra_scripts %}{% endblock extra_scripts %}
 </body>
 </html> 

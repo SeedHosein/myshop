@@ -4,6 +4,7 @@ from django.views import View
 from django.urls import reverse_lazy, reverse
 from django.contrib import messages
 from django.utils import timezone
+from django.conf import settings
 
 from .models import BlogPost, BlogCategory, BlogComment
 from .forms import BlogCommentForm
@@ -26,6 +27,7 @@ class BlogListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
         context['category'] = self.category
         context['categories'] = BlogCategory.objects.all()
         return context
@@ -42,6 +44,7 @@ class BlogDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
         post = self.get_object()
         context['comments'] = post.comments.filter(status=BlogComment.STATUS_APPROVED).select_related('user').order_by('created_at')
         context['comment_form'] = BlogCommentForm(user=self.request.user)

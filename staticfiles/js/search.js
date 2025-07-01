@@ -1,3 +1,4 @@
+console.log("search_scriptfiles.js loaded"); 
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('search-query');
     const liveResultsContainer = document.getElementById('search-results-live');

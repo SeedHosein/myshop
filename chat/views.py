@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse
+from django.conf import settings
 from .models import ChatSession, ChatMessage
 # from django.utils.translation import gettext_lazy as _ # No longer needed
 from django.http import Http404
@@ -37,12 +38,13 @@ class ChatRoomView(LoginRequiredMixin, View):
 
         if not chat_session:
              raise Http404("امکان شروع یا یافتن جلسه گفتگو وجود ندارد.")
-
-        return render(request, 'chat/chat_room.html', {
+        context = {
             'chat_session_id': str(chat_session.id),
             'chat_session': chat_session,
             'current_user_email': request.user.email
-        })
+        }
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return render(request, 'chat/chat_room.html', context)
 
 class SupportStaffRequiredMixin(UserPassesTestMixin):
     def test_func(self):
@@ -53,9 +55,11 @@ class SupportChatDashboardView(LoginRequiredMixin, SupportStaffRequiredMixin, Vi
         # List active sessions, or sessions needing attention
         active_sessions = ChatSession.objects.filter(is_active=True).order_by('-updated_at')
         # You might want more complex filtering, e.g., sessions with unread messages by agent
-        return render(request, 'chat/support_chat_dashboard.html', {
+        context = {
             'active_sessions': active_sessions
-        })
+        }
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return render(request, 'chat/support_chat_dashboard.html', context)
 
 # Potentially, a view for support staff to join a specific chat (similar to ChatRoomView but with staff context)
 class SupportJoinChatView(LoginRequiredMixin, SupportStaffRequiredMixin, View):
@@ -70,10 +74,11 @@ class SupportJoinChatView(LoginRequiredMixin, SupportStaffRequiredMixin, View):
             chat_session.support_agent = request.user
             chat_session.save() 
             # Notify via WebSocket? Consumer handles this on connect as well.
-
-        return render(request, 'chat/chat_room.html', {
+        context = {
             'chat_session_id': str(chat_session.id),
             'chat_session': chat_session,
             'is_support_staff': True, # Differentiate in template if needed
             'current_user_email': request.user.email
-        })
+        }
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return render(request, 'chat/chat_room.html', context)

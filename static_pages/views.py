@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.views.generic import DetailView
-from .models import StaticPage
 from django.http import Http404
+from django.conf import settings
+from .models import StaticPage
 
 class StaticPageView(DetailView):
     model = StaticPage
@@ -23,6 +24,11 @@ class StaticPageView(DetailView):
         if not obj.is_published and not self.request.user.is_staff:
             raise Http404("This page is not currently available.")
         return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
+        return context
 
 # You might also want a simple template for the static page display.
 # templates/static_pages/static_page_detail.html:

@@ -1,3 +1,4 @@
+console.log("search_scripts.js loaded"); 
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('search-query');
     const liveResultsContainer = document.getElementById('search-results-live');
@@ -30,18 +31,25 @@ document.addEventListener('DOMContentLoaded', function () {
                             liveResultsContainer.style.display = 'block';
                             data.products.forEach(product => {
                                 const a = document.createElement('a');
-                                a.href = product.absolute_url; 
+                                a.href = product.detail_url; 
                                 a.classList.add('list-group-item', 'list-group-item-action');
                                 
                                 let content = `<div class="d-flex w-100 justify-content-between">
                                                  <h6 class="mb-1">${product.name}</h6>`;
-                                if(product.price_display){
-                                    content += `<small class="text-primary">${product.price_display}</small>`;
+                                if(product.price){
+                                    if (parseInt(product.price) == parseInt(product.discounted_price)){
+                                        content += `<small class="text-primary">${parseInt(product.price)}</small>`;
+                                    }else if (parseInt(product.price) > parseInt(product.discounted_price)){
+                                        content += `<p class="card-text">
+                                                        <span class="text-danger text-decoration-line-through">${parseInt(product.price)} تومان</span></br>
+                                                        <span class="text-primary fw-bold">${parseInt(product.discounted_price)} تومان</span>
+                                                    </p>`;
+                                    }
                                 }
                                 content += `</div>`;
 
                                 if (product.category_name) {
-                                    content += `<small class="text-muted">در: ${product.category_name}</small>`;
+                                    content += `<small class="text-muted">در دسته بندی: ${product.category_name}</small>`;
                                 }
                                 a.innerHTML = content;
                                 liveResultsContainer.appendChild(a);

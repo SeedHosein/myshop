@@ -2,11 +2,8 @@
 {% extends "accounts/base_accounts.html" %}
 {% load jalali_tags %}
 
-{% block title %}پروفایل کاربری - {{ profile.email }}{% endblock %}
-
-{% block content %}
-    <h2>سلام، {{ profile.first_name|default:profile.email }}!</h2>
-    <p>این صفحه پروفایل شماست.</p>
+{% block form_content %}
+    <h3>سلام {{ profile.first_name|default:profile.email }}!</h3>
     
     <h3>اطلاعات شما:</h3>
     <ul>
@@ -37,4 +34,4 @@
         {% endfor %}
     </ul>
     {% endif %}
-{% endblock %} 
+{% endblock form_content %} 

@@ -17,7 +17,7 @@ class Category(models.Model):
         on_delete=models.SET_NULL,  # Or models.CASCADE if subcategories should be deleted with parent
         null=True,
         blank=True,
-        related_name='subcategories',
+        related_name='children',
         verbose_name="دسته والد"
     )
 
@@ -35,8 +35,8 @@ class Category(models.Model):
         super().save(*args, **kwargs)
 
     # Optional: Add a method to get the absolute URL for a category
-    # def get_absolute_url(self):
-    #     return reverse('products:category_detail', kwargs={'slug': self.slug})
+    def get_absolute_url(self):
+        return reverse('products:category_detail', kwargs={'category_slug': self.slug})
 
 
 class Product(models.Model):

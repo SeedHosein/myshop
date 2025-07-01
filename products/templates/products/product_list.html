@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}محصولات - فروشگاه چراغ خانه{% endblock %}
+{% block title %}محصولات - {{ SHOP_NAME }}{% endblock %}
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'css/product_list_styles.css' %}"> {# Example specific CSS #}
@@ -32,18 +32,22 @@
             <h4>دسته‌بندی‌ها</h4>
             <div class="list-group">
                 <a href="{% url 'products:product_list' %}" class="list-group-item list-group-item-action {% if not current_category %}active{% endif %}">
-                    همه دسته‌بندی‌ها
+                    همه محصولات
                 </a>
                 {% for category in categories %}
                     <a href="{{ category.get_absolute_url }}" 
                        class="list-group-item list-group-item-action {% if current_category.slug == category.slug %}active{% endif %}">
                         {{ category.name }}
                         {% if category.children.exists %}
-                            <!-- Add a visual indicator for parent categories if desired -->
+                            {% for child in category.children.all %}
+                                <a href="{{ child.get_absolute_url }}"
+                                class="list-group-item list-group-item-action {% if current_category.slug == child.slug %}active{% endif %}">
+                                    -- {{ child.name }}
+                                </a>
+                            {% endfor %}
                         {% endif %}
                     </a>
-                    {% comment %}
-                    <!-- Example for displaying subcategories if needed -->
+                    {% comment %} <!-- Example for displaying subcategories if needed -->
                     {% if category.children.exists and current_category.slug == category.slug or category in current_category.get_ancestors %}
                         <div class="ms-3">
                         {% for child in category.children.all %}
@@ -53,8 +57,7 @@
                             </a>
                         {% endfor %}
                         </div>
-                    {% endif %}
-                    {% endcomment %}
+                    {% endif %} {% endcomment %}
                 {% endfor %}
             </div>
         </div>
@@ -89,7 +92,20 @@
                                         <span class="fw-bold">{{ product.price|floatformat:0 }} تومان</span>
                                     {% endif %}
                                 </p>
-                                <a href="#" class="btn btn-sm btn-outline-primary">افزودن به سبد خرید</a>
+                                {% if product.is_active and product.stock > 0 %}
+                                    <form method="POST" action="{% url 'cart_and_orders:add_to_cart' %}" class="add-to-cart-form my-3">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                                        <input type="hidden" name="quantity" value="1">
+                                        <div class="input-group mx-auto" >
+                                            <button type="submit" class="btn btn-primary mx-auto">
+                                                <i class="fas fa-shopping-cart me-1"></i> افزودن به سبد خرید
+                                            </button>
+                                        </div>
+                                    </form>
+                                {% else %}
+                                    <p class="alert alert-warning">این محصول در حال حاضر موجود نیست.</p>
+                                {% endif %}
                             </div>
                         </div>
                         {% if product.discounted_price and product.discounted_price < product.price %}
@@ -156,6 +172,6 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
+{% block extra_scripts %}
 <script src="{% static 'js/search.js' %}"></script>
-{% endblock %} 
+{% endblock extra_scripts %} 

@@ -15,7 +15,7 @@ class Cart(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ بروزرسانی")
     
     applied_discount_code = models.CharField(verbose_name="کد تخفیف اعمال شده", max_length=50, null=True, blank=True)
-    discount_amount = models.DecimalField(verbose_name="مبلغ تخفیف", max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    discount_amount = models.DecimalField(verbose_name="مبلغ تخفیف (تومان)", max_digits=12, decimal_places=2, default=Decimal('0.00'))
 
     class Meta:
         verbose_name = "سبد خرید"
@@ -25,31 +25,17 @@ class Cart(models.Model):
         return f"سبد خرید برای {self.user.email if self.user else 'کاربر ناشناس'}"
 
     @property
-    def total_active_items(self):
-        """Total quantity of active items in the cart."""
-        return sum(item.quantity for item in self.items.filter(is_saved_for_later=False))
-
-    @property
     def subtotal_price(self):
         """Total price of active items before any cart-level discount."""
+        for item in self.items.filter(is_saved_for_later=False):
+            if not item.product.is_active:
+                item.delete()
         return sum(item.get_total_price() for item in self.items.filter(is_saved_for_later=False) if item.product and item.product.price is not None)
 
     @property
     def final_price(self):
         """Final price after applying cart-level discount."""
         return self.subtotal_price - self.discount_amount
-
-    # Alias for consistency with previous references if needed, points to active items count
-    @property
-    def total_items(self):
-        return self.total_active_items
-
-    # Alias for consistency if some parts of code expect `total_price` to be the final one after discount.
-    # However, it is clearer to use `subtotal_price` and `final_price` explicitly.
-    # For now, let this reflect the price *before* discount to match previous `total_price` behavior.
-    @property
-    def total_price(self):
-        return self.subtotal_price
 
     def clear_discount(self):
         self.applied_discount_code = None
@@ -81,7 +67,7 @@ class CartItem(models.Model):
             # Assuming get_display_price is a method. If it's a property, use self.product.get_display_price
             # Based on previous context, it was designed as a property.
             if callable(self.product.get_display_price):
-                 return self.product.get_display_price() * self.quantity
+                return self.product.get_display_price() * self.quantity
             return self.product.get_display_price * self.quantity 
         return Decimal('0.00')
 

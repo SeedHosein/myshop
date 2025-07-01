@@ -4,8 +4,8 @@ from .models import Cart, CartItem, Order, OrderItem
 class CartItemInline(admin.TabularInline):
     model = CartItem
     extra = 0 # Don't show extra empty forms for existing carts
-    readonly_fields = ('product', 'quantity', 'added_at', 'get_total_price')
-    can_delete = False # Usually cart items are managed by user/system, not manually deleted in admin cart view
+    fields = ('is_saved_for_later', 'product', 'quantity', 'added_at', 'get_total_price')
+    readonly_fields = ('added_at', 'get_total_price')
 
     def get_total_price(self, obj):
         return obj.get_total_price()
@@ -30,7 +30,6 @@ class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0 # Don't show extra empty forms for existing orders
     readonly_fields = ('product', 'quantity', 'price_at_purchase', 'product_name_at_purchase', 'get_total_price')
-    can_delete = False # Order items should not be deleted from a placed order
 
     def get_total_price(self, obj):
         return obj.get_total_price()

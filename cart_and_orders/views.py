@@ -7,6 +7,7 @@ from django.contrib import messages
 # from django.utils.translation import gettext_lazy as _ # No longer needed
 from django.db import transaction
 from django.utils import timezone
+from django.conf import settings
 from decimal import Decimal
 
 from products.models import Product # Assuming Product model is in products app
@@ -118,6 +119,7 @@ class CartDetailView(TemplateView):
         cart_items_saved_for_later = []
         total_price = 0
         item_count = 0
+        context['SHOP_NAME'] = settings.SHOP_NAME
 
         if self.request.user.is_authenticated:
             cart, created = Cart.objects.get_or_create(user=self.request.user)
@@ -149,7 +151,7 @@ class CartDetailView(TemplateView):
             context['discount_amount'] = cart.discount_amount
             context['subtotal_cart_price'] = cart.subtotal_price # Explicitly pass subtotal
             context['final_cart_price'] = cart.final_price
-            context['total_cart_items'] = cart.total_active_items
+            context['total_cart_items'] = cart.subtotal_price
         else:
             # Session cart
             session_cart_data = get_session_cart(self.request.session)
@@ -192,7 +194,7 @@ class AddToCartView(View):
         form = AddToCartForm(request.POST)
         if form.is_valid():
             product_id = form.cleaned_data['product_id']
-            quantity = form.cleaned_data['quantity']
+            quantity = int(form.cleaned_data['quantity'])
             product = get_object_or_404(Product, id=product_id, is_active=True)
 
             if product.stock < quantity:
@@ -211,7 +213,6 @@ class AddToCartView(View):
                 )
                 if not created:
                     cart_item.quantity += quantity
-                    cart_item.save()
                 msg = f"تعداد محصول '{product.name}' در سبد شما بروزرسانی شد." if not created else f"محصول '{product.name}' به سبد شما اضافه شد."
                 cart.save() # Recalculate totals and save cart discount info
             else:
@@ -242,8 +243,8 @@ class AddToCartView(View):
                 # For AJAX, return updated cart count and total, or full cart partial
                 if request.user.is_authenticated:
                     cart = Cart.objects.get(user=request.user) # Re-fetch cart to get latest totals with discount
-                    cart_total_items = cart.total_items
-                    cart_total_price = cart.get_final_price()
+                    cart_total_items = cart.items.filter(is_saved_for_later=False).count()
+                    cart_total_price = cart.final_price
                 else:
                     cart_total_items = session_cart.get('item_count', 0)
                     cart_total_price = Decimal(str(session_cart.get('total_price', '0.00')))
@@ -288,8 +289,8 @@ class RemoveFromCartView(View):
                 return redirect('cart_and_orders:cart_detail')
 
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            cart_total_items = Cart.objects.get(user=request.user).total_items if request.user.is_authenticated else session_cart.get('item_count', 0)
-            cart_total_price = Cart.objects.get(user=request.user).total_price if request.user.is_authenticated else session_cart.get('total_price', 0)
+            cart_total_items = Cart.objects.get(user=request.user).items.filter(is_saved_for_later=False).count()
+            cart_total_price = Cart.objects.get(user=request.user).subtotal_price if request.user.is_authenticated else session_cart.get('subtotal_price', 0)
             return JsonResponse({
                 'status': 'success', 
                 'message': msg,
@@ -358,12 +359,12 @@ class UpdateCartItemQuantityView(View):
             if request.user.is_authenticated:
                 cart = Cart.objects.get(user=request.user) # Re-fetch cart
                 item_total_price_str = f"{item_total_price:.2f}"
-                cart_total_items = cart.total_items
-                cart_total_price = f"{cart.get_final_price():.2f}"
+                cart_total_items = cart.items.filter(is_saved_for_later=False).count()
+                cart_total_price = f"{cart.final_price:.2f}"
             else:
                 item_total_price_str = f"{item_total_price:.2f}"
                 cart_total_items = session_cart.get('item_count', 0)
-                cart_total_price = f"{Decimal(str(session_cart.get('total_price', '0.00'))):.2f}"
+                cart_total_price = f"{Decimal(str(session_cart.get('subtotal_price', '0.00'))):.2f}"
             return JsonResponse({
                 'status': 'success', 
                 'message': msg,
@@ -385,8 +386,13 @@ class SaveForLaterView(View):
         
         cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
         product_name = cart_item.product.name
-        
-        cart_item.is_saved_for_later = not cart_item.is_saved_for_later # Toggle state
+        new_is_saved = not cart_item.is_saved_for_later
+        # Check for duplicate before toggling
+        duplicate = CartItem.objects.filter(cart=cart_item.cart, product=cart_item.product, is_saved_for_later=new_is_saved).exclude(id=cart_item.id).first()
+        if duplicate:
+            cart_item.quantity += duplicate.quantity
+            duplicate.delete()
+        cart_item.is_saved_for_later = new_is_saved
         cart_item.save()
         
         action_text = "برای بعد ذخیره شد" if cart_item.is_saved_for_later else "به سبد خرید بازگردانده شد"
@@ -394,8 +400,8 @@ class SaveForLaterView(View):
 
         # Recalculate cart totals for authenticated user
         cart = cart_item.cart
-        cart_total_items = cart.total_items
-        cart_total_price = f"{cart.get_final_price():.2f}"
+        cart_total_items = cart.items.filter(is_saved_for_later=False).count()
+        cart_total_price = f"{cart.final_price:.2f}"
         active_items_count = cart.items.filter(is_saved_for_later=False).count()
         saved_items_count = cart.items.filter(is_saved_for_later=True).count()
 
@@ -442,14 +448,15 @@ class CheckoutView(FormView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
         
         if self.request.user.is_authenticated:
             cart = get_object_or_404(Cart, user=self.request.user)
             context['cart'] = cart
             context['cart_items'] = cart.items.filter(is_saved_for_later=False)
-            context['subtotal'] = cart.calculate_total_price() # Price before discount
+            context['subtotal'] = cart.subtotal_price # Price before discount
             context['discount_amount'] = cart.discount_amount
-            context['final_total'] = cart.get_final_price() # Price after discount
+            context['final_total'] = cart.final_price # Price after discount
             context['applied_discount_code'] = cart.applied_discount_code
         else:
             # Handle guest user checkout context from session
@@ -461,7 +468,7 @@ class CheckoutView(FormView):
                     cart_items.append({
                         'product': product,
                         'quantity': details.get('quantity', 1),
-                        'total_price': Decimal(details.get('price', '0.00')) * int(details.get('quantity', 1)),
+                        'subtotal_price': Decimal(product.get('get_display_price', '0.00')) * int(details.get('quantity', 1)),
                     })
                 except Product.DoesNotExist:
                     continue # Or handle missing product appropriately
@@ -603,6 +610,7 @@ class OrderConfirmationView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['SHOP_NAME'] = settings.SHOP_NAME
         last_order_id = self.request.session.get('last_order_id')
         if last_order_id:
             try:
@@ -689,7 +697,7 @@ class ApplyDiscountView(View):
                     'original_total': f"{cart.subtotal_price:.2f}",
                     'final_total': f"{cart.final_price:.2f}",
                     'discount_amount': f"{cart.discount_amount:.2f}", # Should be 0.00
-                    'cart_total_items': cart.total_active_items,
+                    'cart_total_items': cart.items.filter(is_saved_for_later=False).count(),
                     'applied_discount_code': None
                 })
             else:
@@ -721,7 +729,7 @@ class ApplyDiscountView(View):
                     'discount_amount': f"{result['discount_amount']:.2f}",
                     'original_total': f"{cart_total_before_discount:.2f}",
                     'final_total': f"{result['final_total']:.2f}",
-                    'cart_total_items': cart.total_active_items,
+                    'cart_total_items': cart.items.filter(is_saved_for_later=False).count(),
                     'applied_discount_code': result['discount_code']
                 })
             else:

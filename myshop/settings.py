@@ -15,6 +15,8 @@ import json
 from pathlib import Path
 from decouple import config
 
+SHOP_NAME = config('SHOP_NAME')
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
