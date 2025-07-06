@@ -24,3 +24,5 @@ Twisted==24.11.0
 txaio==23.1.1
 typing_extensions==4.13.2
 zope.interface==7.2
+python-decouple
+django-jalali-date
