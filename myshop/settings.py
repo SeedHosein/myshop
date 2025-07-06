@@ -103,7 +103,12 @@ ASGI_APPLICATION = 'myshop.asgi.application' # Corrected path, assuming asgi.py 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = json.loads(config('DATABASES'))
+_databases_config_str = config('DATABASES')
+DATABASES = json.loads(_databases_config_str)
+
+# Ensure the SQLite database path is relative to BASE_DIR
+if DATABASES.get('default', {}).get('ENGINE') == 'django.db.backends.sqlite3':
+    DATABASES['default']['NAME'] = BASE_DIR / 'db.sqlite3'
 
 
 # Password validation
