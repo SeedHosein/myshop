@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}نظر خود را برای {{ product.name }} ثبت کنید{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>ثبت نظر برای محصول: {{ product.name }}</h2>
+    <hr>
+    <form method="post">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class.alert alert-danger">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="form-group mb-3">
+            <label for="{{ form.rating.id_for_label }}">{{ form.rating.label }}</label>
+            {{ form.rating }}
+            {% if form.rating.help_text %}
+                <small class="form-text text-muted">{{ form.rating.help_text }}</small>
+            {% endif %}
+            {% for error in form.rating.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="{{ form.comment.id_for_label }}">{{ form.comment.label }}</label>
+            {{ form.comment }}
+            {% if form.comment.help_text %}
+                <small class="form-text text-muted">{{ form.comment.help_text }}</small>
+            {% endif %}
+            {% for error in form.comment.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">ثبت نظر</button>
+        <a href="{% url 'products:product_detail' slug=product.slug %}" class="btn btn-secondary">انصراف</a>
+    </form>
+</div>
+{% endblock %}

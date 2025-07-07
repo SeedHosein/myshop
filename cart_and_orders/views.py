@@ -4,6 +4,7 @@ from django.views.generic import TemplateView, FormView
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 # from django.utils.translation import gettext_lazy as _ # No longer needed
 from django.db import transaction
 from django.utils import timezone
@@ -422,7 +423,7 @@ class SaveForLaterView(View):
 
 
 # --- Checkout Process --- #
-class CheckoutView(FormView):
+class CheckoutView(LoginRequiredMixin, FormView):
     template_name = 'cart_and_orders/checkout.html'
     form_class = CheckoutForm
     success_url = reverse_lazy('cart_and_orders:order_confirmation') # Placeholder, will change after payment
@@ -434,11 +435,12 @@ class CheckoutView(FormView):
             if not cart.items.filter(is_saved_for_later=False).exists():
                 messages.info(request, "سبد خرید شما خالی است. لطفاً قبل از پرداخت، محصولی اضافه کنید.")
                 return redirect('products:product_list')
-        else:
-            session_cart = get_session_cart(request.session)
-            if not session_cart.get('items'):
-                messages.info(request, "سبد خرید شما خالی است. لطفاً قبل از پرداخت، محصولی اضافه کنید.")
-                return redirect('products:product_list')
+        # The 'else' block for anonymous users is removed.
+        # LoginRequiredMixin (as the first inherited class) will handle redirection
+        # for unauthenticated users to the login page.
+        # If execution reaches this point for an anonymous user (it shouldn't if LRM is first),
+        # super().dispatch() would call LRM's dispatch which then redirects.
+        # If execution reaches here for an authenticated user, the above cart check ran.
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
