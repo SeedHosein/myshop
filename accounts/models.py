@@ -50,12 +50,13 @@ class CustomUserManager(BaseUserManager):
 class UserProfile(AbstractUser):
     username = None
 
-    email = models.EmailField('آدرس ایمیل', unique=True, help_text='ضروری. فرمت: name@domain.com')
+    email = models.EmailField('آدرس ایمیل', unique=True, blank=True, help_text='. فرمت: name@domain.com')
     phone_number = models.CharField(
         'شماره تلفن همراه',
         max_length=15,
         unique=True,
-        help_text='ضروری. فرمت: 09xxxxxxxxx یا +989xxxxxxxxx'
+        blank=True,
+        help_text='. فرمت: 09xxxxxxxxx یا +989xxxxxxxxx'
     )
 
     national_code = models.CharField('کد ملی', max_length=10, unique=True, blank=True, null=True)
@@ -86,17 +87,26 @@ class UserProfile(AbstractUser):
     REQUIRED_FIELDS = ['phone_number']
 
     objects = CustomUserManager()
+    
+    def save(self, **kwargs):
+        if not self.email and not self.phone_number:
+            raise ValueError('ایمیل یا شماره تلفن باید تنظیم شود')
+        return super().save(**kwargs)
 
     class Meta:
         verbose_name = 'پروفایل کاربر'
         verbose_name_plural = 'پروفایل‌های کاربران'
 
     def __str__(self):
+        if self.phone_number:
+            return self.phone_number
         return self.email # Or f'{self.first_name} {self.last_name}' if they are reliably present
 
     # You can add methods here for getting full name, short name, etc.
-    # def get_full_name(self):
-    #     return f'{self.first_name} {self.last_name}'.strip()
-
-    # def get_short_name(self):
-    #     return self.first_name
+    @property
+    def get_full_name(self):
+        return f'{self.first_name} {self.last_name}'.strip()
+    
+    @property
+    def get_short_name(self):
+        return self.first_name

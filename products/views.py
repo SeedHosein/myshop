@@ -58,13 +58,18 @@ class ProductSearchAPIView(ListView):
 
     def get(self, request, *args, **kwargs):
         query = request.GET.get('q', '')
+        page = request.GET.get('page', '1')
+        try:
+            page = int(page)
+        except:
+            page = 1
         if query and len(query) >= 2: # Minimum query length
             products = Product.objects.filter(
                 Q(is_active=True) &
                 (Q(name__icontains=query) | 
                  Q(description_short__icontains=query) | 
                  Q(category__name__icontains=query))
-            ).distinct()[:12] # Limit results
+            ).distinct()[(page*10)-10:(page*10)+1]
             
             results = []
             for product in products:

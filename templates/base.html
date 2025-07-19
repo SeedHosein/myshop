@@ -6,11 +6,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}فروشگاه {{ SHOP_NAME }}{% endblock title %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/base_styles.css' %}">
     {% block extra_head %}{% endblock extra_head %}
 </head>
 <body>
+    {% if 0 %}
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'core:home' %}">{{ SHOP_NAME }}</a>
@@ -72,7 +72,87 @@
                 </ul>
             </div>
         </div>
-    </nav>
+    </nav>{% endif %}
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 flex justify-between items-center py-4">
+            <a href="{% url 'core:home' %}" class="text-3xl font-extrabold text-primary-red">{{ SHOP_NAME }}</a>
+            
+            <nav id="main-nav" class="hidden lg:flex items-center space-x-8">
+                <a href="{% url 'core:home' %}" class="nav-link">خانه</a>
+                <a href="{% url 'products:product_list' %}" class="nav-link">محصولات</a>
+                <a href="javascript:void(0);" class="nav-link">تخفیف‌های ویژه</a>
+                <a href="{% url 'blog:post_list' %}" class="nav-link">وبلاگ</a>
+                <a href="javascript:void(0);" class="nav-link">درباره ما</a>
+            </nav>
+
+            <div class="flex items-center space-x-5">
+                <div style="padding: 0; margin: 0;">
+                    <!-- Interactive Search -->
+                    <form id="search-form" method="GET" action="{% url 'products:product_search_page' %}" class="search-container">
+                        <input type="search"  id="search-query" name="q" class="search-input"
+                            placeholder="جستجو..." value="{{ request.GET.q }}"
+                            data-search-url="{% url 'products:product_search_api' %}" required>
+                        <button class="search-button" type="submit">
+                            <i class="fas fa-search text-xl"></i>
+                        </button>
+                    </form>
+                    <div id="search-results-live" class="search-list-group" style="position: absolute; z-index: 1000; display: none;">
+                        <!-- Live search results will be injected here by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Profile Section -->
+                <div class="relative profile-container">
+                    
+                    
+                    {% if user.is_authenticated %}
+                    <div class="profile-icon-wrapper">
+                        <i class="fas fa-user text-xl text-gray-600"></i>
+                        <div class="profile-dropdown">
+                            <div class="p-4 border-b text-center">
+                                <p class="font-bold text-gray-800">{{ user.get_full_name }}</p>
+                                <p class="text-sm text-gray-500">{{ user.email }}</p>
+                            </div>
+                            <ul class="py-2">
+                                <li><a href="{% url 'accounts:profile' %}" class="dropdown-link justify-center"><i class="fas fa-user-circle ml-2"></i>مدیریت حساب کاربری</a></li>
+                                {% if user.is_staff %}
+                                    <li><a href="{% url 'admin:index' %}" class="dropdown-link justify-center"><i class="fa-solid fa-screwdriver-wrench ml-2"></i>پنل ادمین</a></li>
+                                    <li><a href="{% url 'chat:support_dashboard' %}" class="dropdown-link justify-center"><i class="fa-solid fa-comment-dots ml-2"></i>داشبورد پشتیبانی</a></li>
+                                {% endif %}
+                                <li><form method="post" action="{% url 'accounts:logout' %}" style="display: inline;">{% csrf_token %}<button type="submit" class="dropdown-link text-primary-red justify-center btn-logout"><i class="fas fa-sign-out-alt ml-2"></i>خروج از حساب کاربری</button></form></li>
+                            </ul>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="profile-buttons-wrapper">
+                        <a href="{% url 'accounts:login' %}" class="btn-login">ورود</a>
+                        <a href="{% url 'accounts:register' %}" class="btn-signup">ثبت‌نام</a>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <a href="{% url 'cart_and_orders:cart_detail' %}" class="relative text-gray-600 hover:text-primary-red transition-colors">
+                    <i class="fas fa-shopping-bag text-xl"></i>
+                    <span class="absolute -top-2 -right-3 bg-primary-red text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">{{ request.session.cart.item_count|default:0 }}</span>
+                </a>
+            </div>
+             <!-- Mobile Menu Button -->
+            <div class="lg:hidden">
+                <button id="mobile-menu-button" class="text-gray-700 text-2xl">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+        <!-- Mobile Nav -->
+        <nav id="mobile-nav" class="hidden lg:hidden bg-white border-t p-4">
+             <a href="{% url 'core:home' %}" class="block py-2 px-4 text-gray-700 hover:bg-gray-100 rounded">خانه</a>
+                <a href="{% url 'products:product_list' %}" class="block py-2 px-4 text-gray-700 hover:bg-gray-100 rounded">محصولات</a>
+                <a href="javascript:void(0);" class="block py-2 px-4 text-gray-700 hover:bg-gray-100 rounded">تخفیف‌های ویژه</a>
+                <a href="{% url 'blog:post_list' %}" class="block py-2 px-4 text-gray-700 hover:bg-gray-100 rounded">وبلاگ</a>
+                <a href="javascript:void(0);" class="block py-2 px-4 text-gray-700 hover:bg-gray-100 rounded">درباره ما</a>
+        </nav>
+    </header>
 
     <div class="container mt-4">
         {% if messages %}
@@ -95,14 +175,60 @@
         {% endblock content %}
     </div>
 
+    <!-- Footer -->
     <footer class="footer mt-auto py-3 bg-light text-center">
-        <div class="container">
-            <span class="text-muted">فروشگاه {{ SHOP_NAME }} © {% now "Y" %}</span>
+    </footer>
+    <footer class="bg-gray-800 text-white pt-16 pb-6 mt-20">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-8">
+                <!-- About Us -->
+                <div>
+                    <h3 class="text-2xl font-bold mb-8">فروشگاه</h3>
+                    <p class="text-gray-400 text-sm leading-loose">ما باور داریم که خرید آنلاین باید ساده، لذت‌بخش و مطمئن باشد. به همین دلیل بهترین‌ها را برای شما گرد هم آورده‌ایم.</p>
+                    <div class="flex space-x-4 mt-6">
+                        <a href="javascript:void(0);" class="text-gray-400 hover:text-white text-xl"><i class="fab fa-instagram"></i></a>
+                        <a href="javascript:void(0);" class="text-gray-400 hover:text-white text-xl"><i class="fab fa-telegram"></i></a>
+                        <a href="javascript:void(0);" class="text-gray-400 hover:text-white text-xl"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="text-lg font-bold text-white mb-4">دسترسی سریع</h3>
+                    <ul class="space-y-3">
+                        <li><a href="{% url 'accounts:profile' %}" class="text-gray-400 hover:text-white transition-colors">حساب کاربری من</a></li>
+                        <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors">پیگیری سفارش</a></li>
+                        <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors">تخفیف‌ها</a></li>
+                        <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors">تماس با ما</a></li>
+                    </ul>
+                </div>
+                <!-- Customer Service -->
+                <div>
+                    <h3 class="text-lg font-bold text-white mb-4">راهنمای خرید</h3>
+                    <ul class="space-y-3">
+                        <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors">نحوه ثبت سفارش</a></li>
+                        <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors">رویه ارسال سفارش</a></li>
+                        <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors">شیوه‌های پرداخت</a></li>
+                    </ul>
+                </div>
+                <!-- Newsletter -->
+                <div>
+                    <h3 class="text-lg font-bold text-white mb-4">عضویت در خبرنامه</h3>
+                    <p class="text-gray-400 text-sm mb-4">اولین نفری باشید که از جدیدترین محصولات و تخفیف‌ها باخبر می‌شوید.</p>
+                    <form class="flex mt-4">
+                        <input type="email" placeholder="ایمیل شما" class="w-full bg-gray-700 border-gray-600 text-white rounded-r-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-primary-red transition-colors">
+                        <button class="bg-primary-red text-white px-4 rounded-l-lg font-semibold hover:bg-red-700">ثبت</button>
+                    </form>
+                </div>
+            </div>
+            
+        <div class="border-t border-gray-700 pt-6 text-gray-500 container text-center text-sm">
+            <span class="text-muted">تمامی حقوق برای فروشگاه {{ SHOP_NAME }} محفوظ است - &copy; {% now "Y" %}</span>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/base_scripts.js' %}"></script>
+    <script src="{% static 'js/search.js' %}"></script>
     {% block extra_scripts %}{% endblock extra_scripts %}
 </body>
 </html> 

@@ -229,7 +229,7 @@ class AddToCartView(View):
 
                     session_cart['items'][product_id_str] = {
                         'quantity': quantity,
-                        'price': str(product.get_display_price()),
+                        'price': str(product.get_display_price),
                         'name': product.name,
                         'image_url': image_url,
                         'detail_url': product.get_absolute_url()
@@ -468,7 +468,7 @@ class CheckoutView(FormView):
                     cart_items.append({
                         'product': product,
                         'quantity': details.get('quantity', 1),
-                        'subtotal_price': Decimal(product.get('get_display_price', '0.00')) * int(details.get('quantity', 1)),
+                        'subtotal_price': Decimal(product.get_display_price) * int(details.get('quantity', 1)),
                     })
                 except Product.DoesNotExist:
                     continue # Or handle missing product appropriately
@@ -522,10 +522,10 @@ class CheckoutView(FormView):
                 cart_items_to_order.append({
                     'product': product,
                     'quantity': quantity,
-                    'price_at_purchase': product.get_display_price(),
+                    'price_at_purchase': product.get_display_price,
                     'product_name_at_purchase': product.name
                 })
-                final_total_amount += product.get_display_price() * quantity
+                final_total_amount += product.get_display_price * quantity
 
         # Create the Order
         if user:

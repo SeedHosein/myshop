@@ -29,10 +29,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         liveResultsContainer.innerHTML = ''; 
                         if (data.products && data.products.length > 0) {
                             liveResultsContainer.style.display = 'block';
-                            data.products.forEach(product => {
+                            data.products.slice(0, 5).forEach(product => {
                                 const a = document.createElement('a');
                                 a.href = product.detail_url; 
-                                a.classList.add('list-group-item', 'list-group-item-action');
+                                a.classList.add('search-list-group-item', 'justify-center');
                                 
                                 let content = `<div class="d-flex w-100 justify-content-between">
                                                  <h6 class="mb-1">${product.name}</h6>`;
