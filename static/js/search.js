@@ -34,25 +34,33 @@ document.addEventListener('DOMContentLoaded', function () {
                                 a.href = product.detail_url; 
                                 a.classList.add('search-list-group-item', 'justify-center');
                                 
-                                let content = `<div class="d-flex w-100 justify-content-between">
-                                                 <h6 class="mb-1">${product.name}</h6>`;
+                                let content = `<div class="search-cart flex w-full justify-content">
+                                                <div class="search-title justify-content">
+                                                 <h6 class="m-0 text-sm">${product.name}</h6>`;
+
+                                if (product.category_name) {
+                                    content += `<small class="text-gray-500">در دسته بندی: ${product.category_name}</small>`;
+                                }
+
+                                content += `</div>`;
                                 if(product.price){
                                     if (parseInt(product.price) == parseInt(product.discounted_price)){
-                                        content += `<small class="text-primary">${parseInt(product.price)}</small>`;
+                                        content += `<p class="search-text-price">
+                                                        <span class="text-primary font-bold">${parseInt(product.price)} تومان</span>
+                                                    </p>`;
                                     }else if (parseInt(product.price) > parseInt(product.discounted_price)){
-                                        content += `<p class="card-text">
-                                                        <span class="text-danger text-decoration-line-through">${parseInt(product.price)} تومان</span></br>
-                                                        <span class="text-primary fw-bold">${parseInt(product.discounted_price)} تومان</span>
+                                        content += `<p class="search-text-price">
+                                                        <span class="text-primary-red text-decoration-line-through">${parseInt(product.price)} تومان</span></br>
+                                                        <span class="text-primary font-bold">${parseInt(product.discounted_price)} تومان</span>
                                                     </p>`;
                                     }
                                 }
                                 content += `</div>`;
-
-                                if (product.category_name) {
-                                    content += `<small class="text-muted">در دسته بندی: ${product.category_name}</small>`;
-                                }
                                 a.innerHTML = content;
-                                liveResultsContainer.appendChild(a);
+                                const div = document.createElement('div');
+                                div.classList.add('hover:bg-gray-100')
+                                div.appendChild(a);
+                                liveResultsContainer.appendChild(div);
                             });
                         } else {
                             liveResultsContainer.style.display = 'none';

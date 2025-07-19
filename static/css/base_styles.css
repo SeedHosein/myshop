@@ -564,6 +564,7 @@
 :root {
   --primary-red: #e53935;
   --gray-50: #f8f9fa;
+  --gray-100: #F5F5F5;
   --gray-500: #6c757d;
   --gray-600: #495057;
   --gray-700: #343a40;
@@ -736,11 +737,29 @@ a {
 }
 
 .search-list-group-item {
+  margin-right: 1rem;
+  margin-left: 1rem;
+  margin-top: 2px;
+  margin-bottom: 2px;
   display: flex;
-  align-items: center;
-  padding: 0.75rem 1rem;
+  flex-direction: column;
   color: var(--gray-700);
   transition: background-color 0.2s;
+}
+
+.search-cart {
+  align-items: center;
+}
+
+.search-title {
+  flex: auto;
+  flex-direction: column;
+}
+
+.search-text-price {
+  text-align-last: justify;
+  text-align: left;
+  margin: 0;
 }
 
 /* --- Profile Dropdown & Buttons Styles --- */
@@ -1008,6 +1027,10 @@ a {
   padding-bottom: 1.5rem;
 }
 
+.m-0 {
+  margin: 0;
+}
+
 .mr-2 {
   margin-right: 0.5rem;
 }
@@ -1031,6 +1054,10 @@ a {
 .my-3 {
   margin-top: 0.75rem;
   margin-bottom: 0.75rem;
+}
+
+.mb-1 {
+  margin-bottom: 0.25rem;
 }
 
 .mb-8 {
@@ -1194,12 +1221,20 @@ a {
   color: var(--gray-800);
 }
 
+.text-primary {
+  color: var(--black);
+}
+
 .text-primary-red {
   color: var(--primary-red);
 }
 
 .text-yellow-400 {
   color: #facc15;
+}
+
+.text-decoration-line-through {
+  text-decoration-line: line-through;
 }
 
 .hover\:underline:hover {
@@ -1212,6 +1247,12 @@ a {
 
 .hover\:text-white:hover {
   color: var(--white);
+}
+
+.hover\:bg-gray-100:hover {
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+  background-color: var(--gray-100);
 }
 
 /* Backgrounds */
