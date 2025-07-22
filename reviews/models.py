@@ -31,7 +31,7 @@ class ProductReview(models.Model):
         validators=[MinValueValidator(1), MaxValueValidator(5)],
         help_text="امتیاز خود را از 1 (ضعیف) تا 5 (عالی) ستاره انتخاب کنید."
     )
-    comment = models.TextField(verbose_name="متن نظر")
+    comment = models.TextField(max_length=800, verbose_name="متن نظر")
     status = models.CharField(
         max_length=10,
         choices=REVIEW_STATUS_CHOICES,
@@ -40,7 +40,7 @@ class ProductReview(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ثبت")
     # You could add an updated_at field if reviews can be edited
-    # updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ بروزرسانی")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ بروزرسانی")
 
     class Meta:
         verbose_name = "نقد و بررسی محصول"

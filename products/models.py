@@ -114,6 +114,9 @@ class Product(models.Model):
     def get_main_image(self):
         return self.images.filter(is_main=True).first()
 
+    def get_main_image_url(self):
+        return self.images.filter(is_main=True).first().image.url
+
 
 class ProductImage(models.Model):
     product = models.ForeignKey(
