@@ -11,8 +11,10 @@ class CorePermissions(models.Model):
     class Meta:
         managed = False  # No database table created for this model
         permissions = [
-            ("view_dashboard", "Can view the dashboard home page"),
-            ("view_data", "Can view the data in the dashboard"),
+            ("view_dashboard", "دیدن صفحه خانه داشبورد"),
+            ("view_data", "دیدن داده ها در داشبورد"),
+            ("CKeditor_Uplode_Blog_image", "آپلود عکس در پست بلاگ و... با ادیتور"),
+            ("CKeditor_Uplode_Product_image", "آپلود عکس در توضیحات محصولات با ادیتور"),
         ]
 
 class SiteVisit(models.Model):

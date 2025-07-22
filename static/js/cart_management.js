@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener('submit', function(event) {
             event.preventDefault();
             const formData = new FormData(form);
-            const url = form.action; // Should be {% url 'cart_and_orders:add_to_cart' %} 
+            const url = form.action;
 
             fetch(url, {
                 method: 'POST',

@@ -1,3 +1,4 @@
+from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse # Import reverse for fallback
 from django.views.generic import ListView, CreateView, UpdateView, View, DeleteView
@@ -5,6 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib import messages
 from django import forms
+from django_ckeditor_5.widgets import CKEditor5Widget
 # from django.utils.translation import gettext_lazy as _ # No longer needed
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied, FieldError
@@ -43,6 +45,11 @@ class DiscountListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     context_object_name = 'discounts'
     permission_required = 'discounts_and_campaigns.view_discount'
     paginate_by = 20
+    
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.has_perm(self.permission_required):
+            raise Http404()
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return Discount.objects.all().order_by('-start_date')
@@ -74,8 +81,7 @@ class DiscountCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
         perms = self.get_permission_required(instance)
         # Ensure request.user has all permissions in the perms tuple/list
         if not all(request.user.has_perm(p) for p in perms):
-            messages.error(request, "شما اجازه انجام این عملیات را ندارید.")
-            return redirect(self.success_url) # Or a more appropriate redirect
+            raise Http404()
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, pk=None):
@@ -646,11 +652,16 @@ class BlogListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         context['SHOP_NAME'] = settings.SHOP_NAME
         return context
 
+
+
 class BlogCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
     template_name = 'dashboard/blog_form.html'
     model = BlogPost
+    # TODO block change 'author' fields from member and auto change 'author' from system
     fields = ['title', 'slug', 'author', 'content', 'image', 'category', 'tags', 'is_published']
     success_url = reverse_lazy('dashboard:blog_list')
+    CKEditor5Widget_custom = CKEditor5Widget
+    CKEditor5Widget_custom.template_name = "django_ckeditor_5_custom/widget.html"
 
     def get_object(self, pk=None):
         if pk:
@@ -672,7 +683,11 @@ class BlogCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
 
     def get_form_class(self):
         from django.forms import modelform_factory
-        return modelform_factory(self.model, fields=self.fields)
+        modelform = modelform_factory(self.model, fields=self.fields, widgets={
+            "content":self.CKEditor5Widget_custom(config_name="blog"),
+            })
+
+        return modelform
 
     def get(self, request, pk=None):
         instance = self.get_object(pk)
@@ -703,6 +718,7 @@ class BlogDeleteView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessage
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
+        context['success_url'] = self.success_url
         return context
 
     def post(self, request, *args, **kwargs):

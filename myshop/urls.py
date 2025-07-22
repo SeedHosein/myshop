@@ -18,10 +18,10 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from core.views import CKeditorUplodeFile
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("ckeditor5/", include('django_ckeditor_5.urls')), # CKEditor 5 URLS
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('products/', include('products.urls', namespace='products')),
     path('cart/', include('cart_and_orders.urls', namespace='cart_and_orders')),
@@ -30,6 +30,9 @@ urlpatterns = [
     path('dashboard/', include('dashboard.urls', namespace='dashboard')),
     path('pages/', include('static_pages.urls', namespace='static_pages')),
     path('', include('core.urls', namespace='core')),
+    
+    path("ckeditor5/image_upload/", CKeditorUplodeFile.as_view()),
+    path("ckeditor5/", include('django_ckeditor_5.urls')), # CKEditor 5 URLS
 ]
 
 if settings.DEBUG:

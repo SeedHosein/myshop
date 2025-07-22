@@ -25,7 +25,6 @@ myshop is a full-featured e-commerce platform built with Django. It provides a c
     *   Daphne (ASGI server)
 *   **Frontend:**
     *   HTML5 / CSS3
-    *   Bootstrap 5
     *   JavaScript
 *   **Database:**
     *   SQLite 3 (for development)

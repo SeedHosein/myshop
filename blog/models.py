@@ -34,7 +34,8 @@ class BlogPost(models.Model):
         related_name='blog_posts',
         verbose_name="نویسنده"
     )
-    content = CKEditor5Field(verbose_name="محتوای پست")
+    content = CKEditor5Field(config_name="blog", verbose_name="محتوای پست")
+    
     image = models.ImageField(upload_to='blog_images/', blank=True, null=True, verbose_name="تصویر شاخص پست")
     category = models.ForeignKey(
         BlogCategory,

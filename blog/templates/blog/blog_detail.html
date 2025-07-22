@@ -5,99 +5,97 @@
 {% block title %}{{ post.title }} - وبلاگ{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-lg-8 offset-lg-2">
-            <article>
-                <header class="mb-4">
-                    <h1 class="fw-bolder mb-1">{{ post.title }}</h1>
-                    <div class="text-muted fst-italic mb-2">
-                        منتشر شده در: {{ post.published_at|to_jalali:"%Y/%m/%d" }} توسط 
-                        {{ post.author.get_full_name|default:post.author.username|default:"ناشناس" }}
-                        {% if post.category %}
-                        | دسته: <a href="{% url 'blog:post_list_by_category' post.category.slug %}" class="text-decoration-none">{{ post.category.name }}</a>
-                        {% endif %}
-                    </div>
-                    {% if post.get_tags_list %}
-                        <div class="mb-2">
-                            برچسب‌ها: 
-                            {% for tag in post.get_tags_list %}
-                                <span class="badge bg-secondary">{{ tag }}</span>
-                            {% endfor %}
-                        </div>
+<div class="row">
+    <div class="col-lg-8 offset-lg-2">
+        <article>
+            <header class="mb-4">
+                <h1 class="fw-bolder mb-1">{{ post.title }}</h1>
+                <div class="text-muted fst-italic mb-2">
+                    منتشر شده در: {{ post.published_at|to_jalali:"%Y/%m/%d" }} توسط 
+                    {{ post.author.get_full_name|default:post.author.username|default:"ناشناس" }}
+                    {% if post.category %}
+                    | دسته: <a href="{% url 'blog:post_list_by_category' post.category.slug %}" class="text-decoration-none">{{ post.category.name }}</a>
                     {% endif %}
-                </header>
-                {% if post.image %}
-                <figure class="mb-4">
-                    <img class="img-fluid rounded" src="{{ post.image.url }}" alt="{{ post.title }}" style="width: 100%; max-height: 400px; object-fit: cover;"/>
-                </figure>
-                {% endif %}
-                <section class="mb-5">
-                    {{ post.content|safe }} {# CKEditor content is already HTML safe #}
-                </section>
-            </article>
-
-            <hr>
-
-            <!-- Comments section-->
-            <section class="mb-5" id="comments">
-                <div class="card bg-light">
-                    <div class="card-body">
-                        <h4 class="mb-4">نظرات ({{ comments.count }})</h4>
-                        
-                        <!-- Comment form -->
-                        {% if request.user.is_authenticated or site_settings.allow_anonymous_comments %} {# Assuming site_settings for anonymous comments #}
-                        <form method="post" action="{% url 'blog:add_blog_comment' post_slug=post.slug %}" id="comment-form" class="mb-4">
-                            {% csrf_token %}
-                            {{ comment_form.media }} {# For CKEditor or other rich text comment forms if used #}
-                            
-                            {% if not request.user.is_authenticated %}
-                                <div class="mb-3">
-                                    <label for="id_name" class="form-label">نام</label>
-                                    {{ comment_form.name }}
-                                    {% if comment_form.name.errors %}
-                                        <div class="invalid-feedback d-block">{{ comment_form.name.errors|first }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="mb-3">
-                                    <label for="id_email" class="form-label">ایمیل (نمایش داده نمی‌شود)</label>
-                                    {{ comment_form.email }}
-                                    {% if comment_form.email.errors %}
-                                        <div class="invalid-feedback d-block">{{ comment_form.email.errors|first }}</div>
-                                    {% endif %}
-                                </div>
-                            {% endif %}
-
-                            <div class="mb-3">
-                                <label for="id_comment" class="form-label">نظر شما</label>
-                                {{ comment_form.comment }}
-                                {% if comment_form.comment.errors %}
-                                    <div class="invalid-feedback d-block">{{ comment_form.comment.errors|first }}</div>
-                                {% endif %}
-                            </div>
-                            <button class="btn btn-primary" type="submit">ثبت نظر</button>
-                        </form>
-                        {% else %}
-                            <p><a href="{% url 'accounts:login' %}?next={{ request.path }}">ورود</a> برای ثبت نظر.</p>
-                        {% endif %}
-
-                        <!-- Single comment -->
-                        {% for comment in comments %}
-                        <div class="d-flex mb-4">
-                            <div class="flex-shrink-0"><img class="rounded-circle" src="{% static 'core/images/default_avatar.png' %}" alt="User Avatar" width="50"/></div> {# Placeholder avatar #}
-                            <div class="ms-3">
-                                <div class="fw-bold">{{ comment.name|default:"ناشناس" }}</div>
-                                <div class="text-muted fst-italic mb-1 small">{{ comment.created_at|to_jalali:"%Y/%m/%d" }}</div>
-                                {{ comment.comment|linebreaksbr }}
-                            </div>
-                        </div>
-                        {% empty %}
-                        <p>هنوز نظری ثبت نشده است. برای ثبت نظر اولین نفر باشید!</p>
+                </div>
+                {% if post.get_tags_list %}
+                    <div class="mb-2">
+                        برچسب‌ها: 
+                        {% for tag in post.get_tags_list %}
+                            <span class="badge bg-secondary">{{ tag }}</span>
                         {% endfor %}
                     </div>
-                </div>
+                {% endif %}
+            </header>
+            {% if post.image %}
+            <figure class="mb-4">
+                <img class="img-fluid rounded" src="{{ post.image.url }}" alt="{{ post.title }}" style="width: 100%; max-height: 400px; object-fit: cover;"/>
+            </figure>
+            {% endif %}
+            <section class="mb-5">
+                {{ post.content|safe }} {# CKEditor content is already HTML safe #}
             </section>
-        </div>
+        </article>
+
+        <hr>
+
+        <!-- Comments section-->
+        <section class="mb-5" id="comments">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h4 class="mb-4">نظرات ({{ comments.count }})</h4>
+                    
+                    <!-- Comment form -->
+                    {% if request.user.is_authenticated or site_settings.allow_anonymous_comments %} {# Assuming site_settings for anonymous comments #}
+                    <form method="post" action="{% url 'blog:add_blog_comment' post_slug=post.slug %}" id="comment-form" class="mb-4">
+                        {% csrf_token %}
+                        {{ comment_form.media }} {# For CKEditor or other rich text comment forms if used #}
+                        
+                        {% if not request.user.is_authenticated %}
+                            <div class="mb-3">
+                                <label for="id_name" class="form-label">نام</label>
+                                {{ comment_form.name }}
+                                {% if comment_form.name.errors %}
+                                    <div class="invalid-feedback d-block">{{ comment_form.name.errors|first }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                <label for="id_email" class="form-label">ایمیل (نمایش داده نمی‌شود)</label>
+                                {{ comment_form.email }}
+                                {% if comment_form.email.errors %}
+                                    <div class="invalid-feedback d-block">{{ comment_form.email.errors|first }}</div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="id_comment" class="form-label">نظر شما</label>
+                            {{ comment_form.comment }}
+                            {% if comment_form.comment.errors %}
+                                <div class="invalid-feedback d-block">{{ comment_form.comment.errors|first }}</div>
+                            {% endif %}
+                        </div>
+                        <button class="btn btn-primary" type="submit">ثبت نظر</button>
+                    </form>
+                    {% else %}
+                        <p><a href="{% url 'accounts:login' %}?next={{ request.path }}">ورود</a> برای ثبت نظر.</p>
+                    {% endif %}
+
+                    <!-- Single comment -->
+                    {% for comment in comments %}
+                    <div class="d-flex mb-4">
+                        <div class="flex-shrink-0"><img class="rounded-circle" src="{% static 'core/images/default_avatar.png' %}" alt="User Avatar" width="50"/></div> {# Placeholder avatar #}
+                        <div class="ms-3">
+                            <div class="fw-bold">{{ comment.name|default:"ناشناس" }}</div>
+                            <div class="text-muted fst-italic mb-1 small">{{ comment.created_at|to_jalali:"%Y/%m/%d" }}</div>
+                            {{ comment.comment|linebreaksbr }}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p>هنوز نظری ثبت نشده است. برای ثبت نظر اولین نفر باشید!</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
     </div>
 </div>
 

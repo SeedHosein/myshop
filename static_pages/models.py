@@ -9,7 +9,7 @@ class StaticPage(models.Model):
     slug = models.SlugField(max_length=220, unique=True, allow_unicode=True, 
                             help_text="این نامک در URL صفحه استفاده میشود. فقط از حروف، اعداد، خط تیره و زیرخط استفاده کنید.",
                             verbose_name="نامک (Slug)")
-    content = CKEditor5Field(verbose_name="محتوای صفحه")
+    content = CKEditor5Field(verbose_name="محتوای صفحه", config_name="blog")
     is_published = models.BooleanField(default=True, verbose_name="منتشر شده؟")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ بروزرسانی")

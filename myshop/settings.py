@@ -203,37 +203,171 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # CKEditor 5 Configuration
 CKEDITOR_5_CONFIGS = {
     'default': {
-        'toolbar': ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'imageUpload'],
-        'language': 'fa'  # For Persian language UI
+        'toolbar': [
+            "undo", "redo", "|", "selectAll", "|", "findAndReplace", "|", 'heading', '|', 
+            'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'imageUpload'],
+        'heading': {
+            'options': [
+                {'model': 'paragraph', 'title': 'Paragraph', 'class': 'ck-heading_paragraph'},
+                {'model': 'heading1', 'view': 'h1', 'title': 'Heading 1', 'class': 'ck-heading_heading1'},
+                {'model': 'heading2', 'view': 'h2', 'title': 'Heading 2', 'class': 'ck-heading_heading2'},
+                {'model': 'heading3', 'view': 'h3', 'title': 'Heading 3', 'class': 'ck-heading_heading3'},
+                {'model': 'heading4', 'view': 'h4', 'title': 'Heading 4', 'class': 'ck-heading_heading4'},
+                {'model': 'heading5', 'view': 'h5', 'title': 'Heading 5', 'class': 'ck-heading_heading5'},
+                {'model': 'heading6', 'view': 'h6', 'title': 'Heading 6', 'class': 'ck-heading_heading6'},
+            ]
+        },
+        'language': 'fa',  # For Persian language UI
     },
     # Example of a more extended configuration (optional, use if needed)
-    # 'extends': {
-    #     'blockToolbar': [
-    #         'paragraph', 'heading1', 'heading2', 'heading3',
-    #         '|', 'bulletedList', 'numberedList', '|', 'blockQuote',
-    #     ],
-    #     'toolbar': {
-    #         'items': [
-    #             'heading', '|', 'outdent', 'indent', '|', 'bold', 'italic', 'link', 'underline', 'strikethrough',
-    #             'code','subscript', 'superscript', 'highlight', '|', 'codeBlock', 'sourceEditing', 'insertImage',
-    #             'bulletedList', 'numberedList', 'todoList', '|',  'blockQuote', 'imageUpload', '|',
-    #             'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', 'mediaEmbed', 'removeFormat',
-    #             'insertTable',
-    #         ],
-    #         'shouldNotGroupWhenFull': True
-    #     },
-    #     'image': { 'toolbar': ['imageTextAlternative', '|', 'imageStyle:alignLeft', 'imageStyle:alignRight', 'imageStyle:alignCenter', 'imageStyle:side',  '|'], 'styles': ['full', 'side', 'alignLeft', 'alignRight', 'alignCenter']},
-    #     'table': { 'contentToolbar': [ 'tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties' ]},
-    #     'heading' : {
-    #         'options': [
-    #             { 'model': 'paragraph', 'title': 'Paragraph', 'class': 'ck-heading_paragraph' },
-    #             { 'model': 'heading1', 'view': 'h1', 'title': 'Heading 1', 'class': 'ck-heading_heading1' },
-    #             { 'model': 'heading2', 'view': 'h2', 'title': 'Heading 2', 'class': 'ck-heading_heading2' },
-    #             { 'model': 'heading3', 'view': 'h3', 'title': 'Heading 3', 'class': 'ck-heading_heading3' }
-    #         ]
-    #     },
-    #     'language': 'fa'
-    # }
+    'product': {
+        'blockToolbar': [
+            'paragraph', 'heading1', 'heading2', 'heading3',
+            '|', 'bulletedList', 'numberedList', '|', 'blockQuote',
+        ],
+        'toolbar': {
+            'items': [
+                "undo", "redo", "|", "selectAll", "|", "findAndReplace", "|",
+                'heading', '|', 'outdent', 'indent', '|', 'bold', 'italic', 'link', 'underline', 'strikethrough',
+                'code','subscript', 'superscript', 'highlight', '|', 'codeBlock', 'sourceEditing', 'insertImage',
+                'bulletedList', 'numberedList', 'todoList', '|',  'blockQuote', '|',
+                'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', 'mediaEmbed', 'removeFormat',
+                'insertTable',
+            ],
+            'shouldNotGroupWhenFull': True
+        },
+        'image': { 
+            'toolbar': ['imageTextAlternative', '|',
+                        'imageStyle:alignLeft', 'imageStyle:alignRight', 'imageStyle:alignCenter', 'imageStyle:side',  '|'],
+            'styles': ['full', 'side', 'alignLeft', 'alignRight', 'alignCenter'],
+            'uploadUrl': '/products/media/product/uplodeimage/',
+            },
+        'table': { 'contentToolbar': [ 'tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties' ]},
+        'heading': {
+            'options': [
+                {'model': 'paragraph', 'title': 'Paragraph', 'class': 'ck-heading_paragraph'},
+                {'model': 'heading1', 'view': 'h1', 'title': 'Heading 1', 'class': 'ck-heading_heading1'},
+                {'model': 'heading2', 'view': 'h2', 'title': 'Heading 2', 'class': 'ck-heading_heading2'},
+                {'model': 'heading3', 'view': 'h3', 'title': 'Heading 3', 'class': 'ck-heading_heading3'},
+                {'model': 'heading4', 'view': 'h4', 'title': 'Heading 4', 'class': 'ck-heading_heading4'},
+                {'model': 'heading5', 'view': 'h5', 'title': 'Heading 5', 'class': 'ck-heading_heading5'},
+                {'model': 'heading6', 'view': 'h6', 'title': 'Heading 6', 'class': 'ck-heading_heading6'},
+            ]
+        },
+        'language': 'fa'
+    },
+    'blog': {
+        "toolbar": {
+            "items": [
+                "undo", "redo", "|", "selectAll", "|", "findAndReplace", "|",
+                "heading", "style", "|", "bulletedList", "numberedList", "todoList", "|", "outdent", "indent", "|", "blockQuote", "|",
+                "fontFamily", "fontSize", "fontColor", "fontBackgroundColor", "|",
+                "bold", "italic", "underline", "strikethrough", "subscript", "superscript", "highlight", "removeFormat", "|",
+                "alignment", "|",
+                "link", "insertImage", "imageUpload", "mediaEmbed", "insertTable", "|",
+                "horizontalLine", "specialCharacters", "|",
+                "code", "codeBlock", "htmlEmbed", "|", "sourceEditing", "showBlocks",
+            ],
+            "shouldNotGroupWhenFull": True
+        },
+        'image': {
+            'toolbar': [
+                'toggleImageCaption', 'imageTextAlternative', '|',
+                'imageStyle:inline', 'imageStyle:wrapText', 'imageStyle:breakText', 'imageStyle:alignLeft', 'imageStyle:alignCenter', 'imageStyle:alignRight', '|',
+                'resizeImage:50', 'resizeImage:75', 'resizeImage:original', # گزینه‌های بیشتر برای تغییر اندازه
+            ],
+            'styles': ['full', 'side', 'alignLeft', 'alignCenter', 'alignRight', 'wrapText', 'breakText'],
+            "uploadUrl": "/blog/media/blog/uplodeimage/"
+        },
+        'table': {
+            'contentToolbar': ['tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties', 'toggleTableCaption']
+        },
+        'heading': {
+            'options': [
+                {'model': 'paragraph', 'title': 'Paragraph', 'class': 'ck-heading_paragraph'},
+                {'model': 'heading1', 'view': 'h1', 'title': 'Heading 1', 'class': 'ck-heading_heading1'},
+                {'model': 'heading2', 'view': 'h2', 'title': 'Heading 2', 'class': 'ck-heading_heading2'},
+                {'model': 'heading3', 'view': 'h3', 'title': 'Heading 3', 'class': 'ck-heading_heading3'},
+                {'model': 'heading4', 'view': 'h4', 'title': 'Heading 4', 'class': 'ck-heading_heading4'},
+                {'model': 'heading5', 'view': 'h5', 'title': 'Heading 5', 'class': 'ck-heading_heading5'},
+                {'model': 'heading6', 'view': 'h6', 'title': 'Heading 6', 'class': 'ck-heading_heading6'},
+            ]
+        },
+        'list': {
+            'properties': {
+                'styles': True,
+                'startIndex': True,
+                'reversed': True
+            }
+        },
+        'link': {
+            'addTargetToExternalLinks': True,
+            'defaultProtocol': 'https://',
+            'decorators': {
+                'toggleDownloadable': {'mode': 'manual', 'label': 'Downloadable', 'attributes': {'download': 'file'}},
+                'openInNewTab': {'mode': 'manual', 'label': 'Open in a new tab', 'attributes': {'target': '_blank', 'rel': 'noopener noreferrer'}}
+            }
+        },
+        
+        # تعریف استایل‌های سفارشی برای منوی "Style"
+        'style': {
+            'definitions': [
+                {
+                    'name': 'Spoiler',
+                    'element': 'span',
+                    'classes': ['spoiler']
+                },
+                {
+                    'name': 'Code (inline)',
+                    'element': 'span',
+                    'classes': ['inline-code']
+                },
+                {
+                    'name': 'Marker (Yellow)',
+                    'element': 'span',
+                    'classes': ['marker-yellow']
+                }
+            ]
+        },
+        "templates": {
+            "definitions": [
+                {"title": "قالب اطلاعیه", "description": "یک کادر استاندارد برای اطلاعیه‌ها", "data": "<div class=\"alert alert-info\"><h3>اطلاعیه</h3><p>محتوای خود را اینجا وارد کنید.</p></div>"},
+                {"title": "ستون‌بندی دوتایی", "description": "ایجاد دو ستون مساوی", "data": "<div class=\"row\"><div class=\"col-md-6\"><p>ستون اول</p></div><div class=\"col-md-6\"><p>ستون دوم</p></div></div>"}
+            ]
+        },
+
+        # تنظیمات ابزار تغییر حالت حروف
+        'textTransformation': {
+            'extraAttributes': {
+                'text-transform': ['uppercase', 'lowercase', 'capitalize']
+            }
+        },
+        
+        'htmlSupport': {
+            'allow': [{'name': '/.*/', 'attributes': True, 'classes': True, 'styles': True}]
+        },
+        'htmlEmbed': { # تنظیمات مربوط به جاسازی کد HTML
+            'showPreviews': True,
+            # 'sanitizeHtml': (html) => ({ html, hasChanged: false }) # غیرفعال کردن پاکسازی برای کاربران قابل اعتماد
+        },
+        'codeBlock': { # تنظیمات پیشرفته بلوک کد
+            'languages': [
+                {'language': 'plaintext', 'label': 'Plain text'},
+                {'language': 'python', 'label': 'Python'},
+                {'language': 'django', 'label': 'Django Template'},
+                {'language': 'html', 'label': 'HTML'},
+                {'language': 'css', 'label': 'CSS'},
+                {'language': 'javascript', 'label': 'JavaScript'},
+                {'language': 'bash', 'label': 'Bash'},
+            ]
+        },
+        'wordCount': { # فعال‌سازی شمارنده کلمات
+            'displayWords': True,
+            'displayCharacters': True
+        },
+        'placeholder': 'هر آنچه در ذهن دارید، اینجا بنویسید...',
+        'language': 'fa'
+    }
 }
 CKEDITOR_5_FILE_UPLOAD_PERMISSION = "staff"  # Options: "staff", "authenticated", "any"
 # To make CKEditor 5 respect the Django user language setting for the editor UI:

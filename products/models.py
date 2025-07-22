@@ -10,7 +10,7 @@ from django_ckeditor_5.fields import CKEditor5Field # New import for CKEditor 5
 class Category(models.Model):
     name = models.CharField(max_length=255, verbose_name="نام دسته")
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True, verbose_name="اسلاگ (نامک)")
-    description = models.TextField(blank=True, null=True, verbose_name="توضیحات")
+    description = CKEditor5Field(blank=True, null=True, verbose_name="توضیحات", config_name="blog")
     image = models.ImageField(upload_to='category_images/', blank=True, null=True, verbose_name="تصویر دسته")
     parent = models.ForeignKey(
         'self',
@@ -56,7 +56,7 @@ class Product(models.Model):
         verbose_name="دسته بندی"
     )
     description_short = models.CharField(max_length=250, verbose_name="توضیحات کوتاه")
-    description_full = CKEditor5Field(verbose_name="توضیحات کامل / نقد و بررسی")
+    description_full = CKEditor5Field(config_name="product", verbose_name="توضیحات کامل / نقد و بررسی")
     price = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="قیمت (تومان)")
     discounted_price = models.DecimalField(
         max_digits=20,

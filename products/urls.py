@@ -9,4 +9,6 @@ urlpatterns = [
     path('category/<category_slug>/', views.ProductListView.as_view(), name='category_detail'),
     path('product/<slug>', views.ProductDetailView.as_view(), name='product_detail'),
     path('api/search/', views.ProductSearchAPIView.as_view(), name='product_search_api'),
+    
+    path('media/product/uplodeimage/', views.CKeditorUplodeProductImage.as_view(), name='CKeditor_Uplode_BlogImage'),
 ] 

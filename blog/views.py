@@ -5,9 +5,17 @@ from django.urls import reverse_lazy, reverse
 from django.contrib import messages
 from django.utils import timezone
 from django.conf import settings
+from datetime import datetime
+from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import default_storage
+from django.http import Http404
 
 from .models import BlogPost, BlogCategory, BlogComment
 from .forms import BlogCommentForm
+
+import os
 
 class BlogListView(ListView):
     model = BlogPost
@@ -80,3 +88,29 @@ class AddBlogCommentView(View):
                     error_message = f"خطا در فیلد «{field_label}»: {error}"
                     messages.error(self.request, error_message)
             return redirect(reverse('blog:post_detail', kwargs={'slug': post_slug}) + '#comment-form')
+        
+
+class CKeditorUplodeBlogImage(View):
+    
+    permission_required = 'core.CKeditor_Uplode_Blog_image'
+    
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.has_perm(self.permission_required):
+            raise Http404()
+        return super().dispatch(request, *args, **kwargs)
+    
+    def post(self, request):
+        uploaded_file = request.FILES.get('upload')
+        if uploaded_file:
+            now = datetime.now()
+            date_path = now.strftime('%Y_%m_%d')
+            upload_path = os.path.join('ck_editor/blog_uplodeimage', f"{date_path}___{str(uploaded_file.name)}")
+
+            saved_path = default_storage.save(upload_path, uploaded_file)
+            file_url = default_storage.url(saved_path)
+
+            return JsonResponse({'url': file_url})
+
+        return JsonResponse({'error': {'message': 'درخواست نامعتبر است'}}, status=400)
+        
+        
