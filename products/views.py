@@ -6,28 +6,50 @@ from django.http import Http404, JsonResponse
 from django.db.models import Q
 from django.conf import settings
 from django.core.files.storage import default_storage
-from .models import Product, Category, ProductImage, ProductVideo
+from hitcount.views import HitCountDetailView, HitCountMixin
+from hitcount.utils import get_hitcount_model
 from cart_and_orders.models import Cart, CartItem
+
+from .models import Product, Category, ProductImage, ProductVideo
 
 import os
 
 
-class ProductListView(ListView):
+class ProductListView(ListView, HitCountMixin):
     model = Product
     template_name = 'products/product_list.html'
     context_object_name = 'products'
     paginate_by = 12 # Optional: add pagination
+    object = None
+    
+    count_hit = True
 
     def get_queryset(self):
         queryset = Product.objects.filter(is_active=True)
         category_slug = self.kwargs.get('category_slug')
         if category_slug:
             category = get_object_or_404(Category, slug=category_slug)
+            self.object = category
             queryset = queryset.filter(category=category)
         return queryset.order_by('-created_at')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        if self.object:
+            hit_count = get_hitcount_model().objects.get_for_object(self.object)
+            hits = hit_count.hits
+            context['hitcount'] = {'pk': hit_count.pk}
+
+            if self.count_hit:
+                hit_count_response = self.hit_count(self.request, hit_count)
+                if hit_count_response.hit_counted:
+                    hits = hits + 1
+                context['hitcount']['hit_counted'] = hit_count_response.hit_counted
+                context['hitcount']['hit_message'] = hit_count_response.hit_message
+
+            context['hitcount']['total_hits'] = hits
+
+        
         context['SHOP_NAME'] = settings.SHOP_NAME
         context['categories'] = Category.objects.filter(parent__isnull=True) # Top-level categories
         context['current_category'] = None
@@ -36,12 +58,14 @@ class ProductListView(ListView):
             context['current_category'] = get_object_or_404(Category, slug=category_slug)
         return context
 
-class ProductDetailView(DetailView):
+class ProductDetailView(HitCountDetailView):
     model = Product
     template_name = 'products/product_detail.html'
     context_object_name = 'product'
     slug_field = 'slug' # Ensure your Product model has a slug field
     slug_url_kwarg = 'slug' # Matches the URL pattern
+    
+    count_hit = True
 
     def get_queryset(self):
         # Ensure only active products are viewable

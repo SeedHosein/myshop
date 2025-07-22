@@ -1,13 +1,15 @@
 from django.db import models
 from django.utils.text import slugify
 from django.urls import reverse
+from django.contrib.contenttypes.fields import GenericRelation
 # from ckeditor.fields import RichTextField # Old import
 from django_ckeditor_5.fields import CKEditor5Field # New import for CKEditor 5
+from hitcount.models import HitCountMixin, HitCount
 
 # Tip: Consider adding a base model with created_at and updated_at if many models need them.
 # For now, we'll add them directly to the Product model.
 
-class Category(models.Model):
+class Category(models.Model, HitCountMixin):
     name = models.CharField(max_length=255, verbose_name="نام دسته")
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True, verbose_name="اسلاگ (نامک)")
     description = CKEditor5Field(blank=True, null=True, verbose_name="توضیحات", config_name="blog")
@@ -19,6 +21,11 @@ class Category(models.Model):
         blank=True,
         related_name='children',
         verbose_name="دسته والد"
+    )
+    
+    hit_count_generic = GenericRelation(
+        HitCount, object_id_field='object_pk',
+        related_query_name='hit_count_generic_relation'
     )
 
     class Meta:
@@ -39,7 +46,7 @@ class Category(models.Model):
         return reverse('products:category_detail', kwargs={'category_slug': self.slug})
 
 
-class Product(models.Model):
+class Product(models.Model, HitCountMixin):
     PHYSICAL = 'physical'
     DOWNLOADABLE = 'downloadable'
     PRODUCT_TYPE_CHOICES = [
@@ -85,6 +92,11 @@ class Product(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ بروزرسانی")
 
     # Add more fields as needed, e.g., brand, SKU, weight (for physical), file version (for downloadable)
+    
+    hit_count_generic = GenericRelation(
+        HitCount, object_id_field='object_pk',
+        related_query_name='hit_count_generic_relation'
+    )
 
     class Meta:
         verbose_name = "محصول"

@@ -1,11 +1,21 @@
 from django.contrib import admin
+from django.contrib.contenttypes.admin import GenericTabularInline
+from hitcount.models import HitCount
+
 from .models import BlogCategory, BlogPost, BlogComment
+
+class HitCountInline(GenericTabularInline):
+    ct_fk_field = "object_pk"
+    model = HitCount
+    extra = 0
+    readonly_fields = ('hits',)
 
 @admin.register(BlogCategory)
 class BlogCategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug')
     search_fields = ('name',)
     prepopulated_fields = {'slug': ('name',)}
+    inlines = [HitCountInline,]
 
 @admin.register(BlogPost)
 class BlogPostAdmin(admin.ModelAdmin):
@@ -17,6 +27,7 @@ class BlogPostAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at', 'updated_at') # 'published_at' is auto-set by model logic
     date_hierarchy = 'published_at' # Adds date navigation drill-down
     actions = ['publish_posts', 'unpublish_posts']
+    inlines = [HitCountInline,]
     fieldsets = (
         (None, {
             'fields': ('title', 'slug', 'author', 'category')

@@ -32,6 +32,8 @@ urlpatterns = [
     path('reviews/', include('reviews.urls', namespace='reviews')),
     path('', include('core.urls', namespace='core')),
     
+    path('hitcount/', include(('hitcount.urls', 'hitcount'), namespace='hitcount')),
+    
     path("ckeditor5/image_upload/", CKeditorUplodeFile.as_view()),
     path("ckeditor5/", include('django_ckeditor_5.urls')), # CKEditor 5 URLS
 ]

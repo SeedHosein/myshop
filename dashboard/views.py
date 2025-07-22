@@ -18,7 +18,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.cache import cache
 
-from core.models import SiteVisit, CorePermissions
+from core.models import CorePermissions
 
 from discounts_and_campaigns.models import Discount, Campaign
 from reviews.models import ProductReview # Assuming ProductReview is in reviews.models
@@ -554,7 +554,7 @@ class DashboardHomeView(LoginRequiredMixin, PermissionRequiredMixin, View):
                 guest_users += 1
         
         # 2. Total Visits
-        total_visits = SiteVisit.get_instance().count
+        total_visits = 0
 
         context = {
             'total_visits': total_visits,

@@ -2,13 +2,17 @@ from django.shortcuts import render
 from django.views.generic import DetailView
 from django.http import Http404
 from django.conf import settings
+from hitcount.views import HitCountDetailView
+
 from .models import StaticPage
 
-class StaticPageView(DetailView):
+class StaticPageView(HitCountDetailView):
     model = StaticPage
     template_name = 'static_pages/static_page_detail.html'
     context_object_name = 'page'
     slug_url_kwarg = 'slug' # Matches the slug parameter in your urls.py
+    
+    count_hit = True
 
     def get_queryset(self):
         # Only show published pages to non-staff users
@@ -30,23 +34,5 @@ class StaticPageView(DetailView):
         context['SHOP_NAME'] = settings.SHOP_NAME
         return context
 
-# You might also want a simple template for the static page display.
-# templates/static_pages/static_page_detail.html:
-"""
-{% extends "base.html" %}
 
-{% block title %}{{ page.title }}{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-lg-10 offset-lg-1">
-            <h1 class="mb-4">{{ page.title }}</h1>
-            <div>
-                {{ page.content|safe }}
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-"""

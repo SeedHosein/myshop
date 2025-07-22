@@ -2,13 +2,20 @@ from django.db import models
 from django.conf import settings
 from django.utils.text import slugify
 from django.utils import timezone
+from django.urls import reverse
+from django.contrib.contenttypes.fields import GenericRelation
 # from ckeditor.fields import RichTextField # Old import
 from django_ckeditor_5.fields import CKEditor5Field # New import for CKEditor 5
-from django.urls import reverse
+from hitcount.models import HitCountMixin, HitCount
 
-class BlogCategory(models.Model):
+class BlogCategory(models.Model, HitCountMixin):
     name = models.CharField(max_length=100, unique=True, verbose_name="نام دسته بندی وبلاگ")
     slug = models.SlugField(max_length=120, unique=True, allow_unicode=True, verbose_name="اسلاگ (نامک)")
+    
+    hit_count_generic = GenericRelation(
+        HitCount, object_id_field='object_pk',
+        related_query_name='hit_count_generic_relation'
+    )
 
     class Meta:
         verbose_name = "دسته بندی وبلاگ"
@@ -24,7 +31,7 @@ class BlogCategory(models.Model):
         super().save(*args, **kwargs)
 
 
-class BlogPost(models.Model):
+class BlogPost(models.Model, HitCountMixin):
     title = models.CharField(max_length=255, verbose_name="عنوان پست")
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True, help_text="به صورت خودکار از عنوان ساخته میشود.", verbose_name="اسلاگ (نامک)")
     author = models.ForeignKey(
@@ -52,6 +59,11 @@ class BlogPost(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ بروزرسانی")
+    
+    hit_count_generic = GenericRelation(
+        HitCount, object_id_field='object_pk',
+        related_query_name='hit_count_generic_relation'
+    )
 
     class Meta:
         verbose_name = "پست وبلاگ"

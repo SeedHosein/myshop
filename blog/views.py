@@ -11,23 +11,29 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import default_storage
 from django.http import Http404
+from hitcount.views import HitCountDetailView, HitCountMixin
+from hitcount.utils import get_hitcount_model
 
 from .models import BlogPost, BlogCategory, BlogComment
 from .forms import BlogCommentForm
 
 import os
 
-class BlogListView(ListView):
+class BlogListView(ListView, HitCountMixin):
     model = BlogPost
     template_name = 'blog/blog_list.html'
     context_object_name = 'posts'
     paginate_by = 10
+    object = None
+    
+    count_hit = True
 
     def get_queryset(self):
         queryset = BlogPost.objects.filter(is_published=True)
         category_slug = self.kwargs.get('category_slug')
         if category_slug:
             self.category = get_object_or_404(BlogCategory, slug=category_slug)
+            self.object = self.category
             queryset = queryset.filter(category=self.category)
         else:
             self.category = None
@@ -35,16 +41,33 @@ class BlogListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        if self.object:
+            hit_count = get_hitcount_model().objects.get_for_object(self.object)
+            hits = hit_count.hits
+            context['hitcount'] = {'pk': hit_count.pk}
+
+            if self.count_hit:
+                hit_count_response = self.hit_count(self.request, hit_count)
+                if hit_count_response.hit_counted:
+                    hits = hits + 1
+                context['hitcount']['hit_counted'] = hit_count_response.hit_counted
+                context['hitcount']['hit_message'] = hit_count_response.hit_message
+
+            context['hitcount']['total_hits'] = hits
+
+        
         context['SHOP_NAME'] = settings.SHOP_NAME
         context['category'] = self.category
         context['categories'] = BlogCategory.objects.all()
         return context
 
-class BlogDetailView(DetailView):
+class BlogDetailView(HitCountDetailView):
     model = BlogPost
     template_name = 'blog/blog_detail.html'
     context_object_name = 'post'
     slug_url_kwarg = 'slug' # Matches the slug parameter in urls.py
+    
+    count_hit = True
 
     def get_queryset(self):
         # Ensure only published posts are accessible directly via URL

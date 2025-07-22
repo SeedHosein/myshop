@@ -1,6 +1,5 @@
 from django.db import models
 
-# Create your models here.
 
 class CorePermissions(models.Model):
     """
@@ -17,20 +16,3 @@ class CorePermissions(models.Model):
             ("CKeditor_Uplode_Product_image", "آپلود عکس در توضیحات محصولات با ادیتور"),
         ]
 
-class SiteVisit(models.Model):
-    count = models.PositiveIntegerField(default=0)
-
-    def __str__(self):
-        return f"Total Site Visits: {self.count}"
-
-    @classmethod
-    def get_instance(cls):
-        obj, created = cls.objects.get_or_create(pk=1)
-        return obj
-
-    @classmethod
-    def increment_visit_count(cls):
-        visit = cls.get_instance()
-        visit.count += 1
-        visit.save(update_fields=['count'])
-        return visit.count

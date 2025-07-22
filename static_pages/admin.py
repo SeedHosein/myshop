@@ -1,5 +1,14 @@
 from django.contrib import admin
+from django.contrib.contenttypes.admin import GenericTabularInline
+from hitcount.models import HitCount
+
 from .models import StaticPage
+
+class HitCountInline(GenericTabularInline):
+    ct_fk_field = "object_pk"
+    model = HitCount
+    extra = 0
+    readonly_fields = ('hits',)
 
 @admin.register(StaticPage)
 class StaticPageAdmin(admin.ModelAdmin):
@@ -8,6 +17,7 @@ class StaticPageAdmin(admin.ModelAdmin):
     search_fields = ('title', 'slug', 'content')
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ('created_at', 'updated_at')
+    inlines = [HitCountInline,]
     fieldsets = (
         (None, {
             'fields': ('title', 'slug', 'content')

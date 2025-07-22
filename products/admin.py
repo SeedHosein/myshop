@@ -1,16 +1,25 @@
 from django.contrib import admin
+from django.contrib.contenttypes.admin import GenericTabularInline
+from hitcount.models import HitCount
 from .models import Category, Product, ProductImage, ProductVideo, ProductAttribute, ProductAttributeValue
 # from django.utils.translation import gettext_lazy as _ # No longer needed
+
+class HitCountInline(GenericTabularInline):
+    ct_fk_field = "object_pk"
+    model = HitCount
+    extra = 0
+    readonly_fields = ('hits',)
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug', 'parent', 'id')
-    search_fields = ('name', 'description')
+    search_fields = ('name', 'description', 'parent')
     prepopulated_fields = {'slug': ('name',)}
-    # fieldsets = (
-    #     (None, {'fields': ('name', 'slug', 'parent')}),
-    #     ("توضیحات و تصویر", {'fields': ('description', 'image')}),
-    # )
+    inlines = [HitCountInline,]
+    fieldsets = (
+        (None, {'fields': ('name', 'slug', 'parent')}),
+        ("توضیحات و تصویر", {'fields': ('image', 'description')}),
+    )
 
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
@@ -30,7 +39,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ('is_active', 'product_type', 'category', 'created_at')
     search_fields = ('name', 'description_short', 'description_full')
     prepopulated_fields = {'slug': ('name',)}
-    inlines = [ProductImageInline, ProductVideoInline]
+    inlines = [ProductImageInline, ProductVideoInline, HitCountInline]
     # Adjust fieldsets based on actual fields and desired grouping in Persian
     fieldsets = (
         ("اطلاعات اصلی", {
@@ -56,17 +65,13 @@ class ProductAdmin(admin.ModelAdmin):
 class ProductAttributeValueInline(admin.TabularInline):
     model = ProductAttributeValue
     extra = 1
-    # fields = ('attribute', 'value') # This is if ProductAttributeValue is directly linked to Product
-                                  # More likely, ProductAttributeValue is global and linked via an intermediary M2M on Product or Variant.
-                                  # For now, assuming ProductAttributeValue is generic and might not be directly inlined in ProductAdmin this way.
-                                  # Or, if Product has M2M to ProductAttributeValue:
-                                  # filter_horizontal = ('attribute_values',) in ProductAdmin
+    fields = ('attribute', 'value') 
 
 @admin.register(ProductAttribute)
 class ProductAttributeAdmin(admin.ModelAdmin):
     list_display = ('name', 'display_name')
     search_fields = ('name', 'display_name')
-    # inlines = [ProductAttributeValueInline] # This would be if AttributeValue was an inline TO Attribute, not Product
+    inlines = [ProductAttributeValueInline] # This would be if AttributeValue was an inline TO Attribute, not Product
 
 @admin.register(ProductAttributeValue)
 class ProductAttributeValueAdmin(admin.ModelAdmin):
@@ -76,12 +81,13 @@ class ProductAttributeValueAdmin(admin.ModelAdmin):
 
 # ProductImage and ProductVideo are handled by inlines in ProductAdmin,
 # but can be registered separately if direct admin access is needed.
-# @admin.register(ProductImage)
-# class ProductImageAdmin(admin.ModelAdmin):
-#     list_display = ('product', 'alt_text', 'is_main', 'uploaded_at')
-#     list_filter = ('is_main', 'product')
+@admin.register(ProductImage)
+class ProductImageAdmin(admin.ModelAdmin):
+    list_display = ('product', 'alt_text', 'is_main', 'uploaded_at')
+    list_filter = ('is_main', 'product')
+    search_fields = ('product', 'alt_text')
 
-# @admin.register(ProductVideo)
-# class ProductVideoAdmin(admin.ModelAdmin):
-#     list_display = ('product', 'title', 'added_at')
-#     list_filter = ('product',)
+@admin.register(ProductVideo)
+class ProductVideoAdmin(admin.ModelAdmin):
+    list_display = ('product', 'video_url', 'title', 'added_at')
+    list_filter = ('product',)

@@ -43,8 +43,8 @@ class ProductReview(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ بروزرسانی")
 
     class Meta:
-        verbose_name = "نقد و بررسی محصول"
-        verbose_name_plural = "نقد و بررسی های محصولات"
+        verbose_name = "نظر محصول"
+        verbose_name_plural = "نظرات محصولات"
         ordering = ['-created_at']
         unique_together = ('product', 'user') # Allow one review per user per product
 

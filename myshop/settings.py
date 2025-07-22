@@ -44,9 +44,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize', # Added for template humanization filters
+    'django.contrib.sites',
+
+    'hitcount',
     'channels', # Add channels here
-    
-    # Third-party apps
+    'jalali_date',
     'django_ckeditor_5',
 
     # Local apps
@@ -60,7 +62,6 @@ INSTALLED_APPS = [
     'chat.apps.ChatConfig',
     'static_pages.apps.StaticPagesConfig',
     'dashboard.apps.DashboardConfig',
-    'jalali_date',
 ]
 
 MIDDLEWARE = [
@@ -70,9 +71,6 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'core.middleware.OnlineUsersMiddleware',
-    'core.middleware.ActiveUserMiddleware',
-    'core.middleware.PageViewCounterMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -94,6 +92,8 @@ TEMPLATES = [
         },
     },
 ]
+
+SITE_ID = 1
 
 WSGI_APPLICATION = 'myshop.wsgi.application'
 # Add ASGI_APPLICATION for Channels
