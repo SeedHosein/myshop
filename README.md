@@ -100,7 +100,7 @@ Apply the database migrations to create the necessary tables.
 python manage.py migrate
 ```
 
-## Running the Project
+### 6. Running the Project
 
 Once the setup is complete, you can run the Django development server.
 

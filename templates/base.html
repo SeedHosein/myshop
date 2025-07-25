@@ -200,9 +200,18 @@
                         {% endif %}
                     </ul>
                     <div class="flex space-x-4 mt-6">
-                        <a href="javascript:void(0);" class="text-gray-400 hover:text-white text-xl"><i class="fab fa-instagram"></i></a>
-                        <a href="javascript:void(0);" class="text-gray-400 hover:text-white text-xl"><i class="fab fa-telegram"></i></a>
-                        <a href="javascript:void(0);" class="text-gray-400 hover:text-white text-xl"><i class="fab fa-twitter"></i></a>
+                        {% get_shop_information_value 'instagram' as instagram_id %}
+                        {% if instagram_id %}
+                            <a href="https://instagram.com/{{ instagram_id }}" class="text-gray-400 hover:text-white text-xl" target="_blank"><i class="fab fa-instagram"></i></a>
+                        {% endif %}
+                        {% get_shop_information_value 'telegram-channel' as telegram_channel_id %}
+                        {% if telegram_channel_id %}
+                            <a href="https://t.me/{{ telegram_channel_id }}" class="text-gray-400 hover:text-white text-xl" target="_blank"><i class="fab fa-telegram"></i></a>
+                        {% endif %}
+                        {% get_shop_information_value 'x(twitter)' as twitter_id %}
+                        {% if twitter_id %}
+                            <a href="https://x.com/{{ twitter_id }}" class="text-gray-400 hover:text-white text-xl" target="_blank"><i class="fab fa-twitter"></i></a>
+                        {% endif %}
                     </div>
                 </div>
                 <!-- Quick Links -->
