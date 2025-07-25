@@ -127,11 +127,15 @@ python manage.py createsuperuser
 
 **note: To use this feature, be sure to copy the name in the table into the Name field on the admin page and do not change its name.**
 <!-- Shop information items start -->
-| name | help |
-|---|---|
-| about-us | Store's "About Us" page. Create a static page for the "About Us" page and put its slug here. |
-| contact-us | Store's "Contact us" page. Create a static page for the "Contact us" page and put its slug here. |
-| home-page-article | Article below the store home page. Create an unpublished static page with the desired title and "slug" and put its "slug" in "value". All the content of that page will be displayed below the home page. This is for SEO. |
+| name | value | help |
+|---|---|---|
+| about-us | Store's "About Us" page | Create a static page for the "About Us" page and put its slug here. |
+| contact-us | Store's "Contact us" page | Create a static page for the "Contact us" page and put its slug here. |
+| home-page-article | Article below the store home page | Create an unpublished static page with the desired title and "slug" and put its "slug" in "value". All the content of that page will be displayed below the home page. This is for SEO. |
+| instagram | Store Instagram Page ID | insert only the ID without @ |
+| telegram-channel | Store telegram channel ID | insert only the ID without @ |
+| telegram | Store telegram support ID | insert only the ID without @ |
+| x(twitter) | Store x(twitter) page ID | insert only the ID without @ |
 <!-- Shop information items end -->
 
 ---
