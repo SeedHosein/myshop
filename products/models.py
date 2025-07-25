@@ -13,7 +13,7 @@ class Category(models.Model, HitCountMixin):
     name = models.CharField(max_length=255, verbose_name="نام دسته")
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True, verbose_name="اسلاگ (نامک)")
     description = CKEditor5Field(blank=True, null=True, verbose_name="توضیحات", config_name="blog")
-    image = models.ImageField(upload_to='category_images/', blank=True, null=True, verbose_name="تصویر دسته")
+    image = models.ImageField(upload_to='category_images/', verbose_name="تصویر دسته")
     parent = models.ForeignKey(
         'self',
         on_delete=models.SET_NULL,  # Or models.CASCADE if subcategories should be deleted with parent

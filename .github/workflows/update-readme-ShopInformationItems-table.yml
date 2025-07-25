@@ -1,0 +1,52 @@
+# نام Workflow که در تب Actions گیت‌هاب نمایش داده می‌شود
+name: Update README ShopInformationItems Table from CSV
+
+# بخش on: مشخص می‌کند که این اکشن چه زمانی اجرا شود
+on:
+  push:
+    branches:
+      - main  # فقط زمانی اجرا شو که به شاخه main پوش می‌شود
+
+# بخش jobs: وظایفی که باید انجام شوند را تعریف می‌کند
+jobs:
+  update-table-job:
+    # سیستم‌عاملی که این وظیفه روی آن اجرا می‌شود (معمولاً ubuntu-latest)
+    runs-on: ubuntu-latest
+
+    # مراحل (steps) اجرای وظیفه
+    steps:
+      # مرحله ۱: کپی کردن کد ریپازیتوری به ماشین مجازی اکشن
+      # این کار لازم است تا اکشن به فایل‌های شما (CSV و README) دسترسی داشته باشد
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      # مرحله ۲: اجرای اکشن اصلی برای تبدیل CSV به جدول
+      # ما از یک اکشن آماده به نام `csv-to-markdown-table-action` استفاده می‌کنیم
+      - name: Generate Markdown Table from CSV
+        uses: cuchi/csv-to-markdown-table-action@v1.3.1
+        with:
+          # مسیر فایل CSV ورودی
+          csv-file: './ShopInformationItems.csv'
+          # مسیر فایل README.md که باید آپدیت شود
+          readme-file: './README.md'
+          # نشانگر شروع که در README قرار دادیم
+          target-marker-start: '<!-- Shop information items start -->'
+          # نشانگر پایان
+          target-marker-end: '<!-- Shop information items end -->'
+
+      # مرحله ۳: کامیت کردن تغییرات در فایل README.md
+      # اگر اکشن مرحله قبل، فایل README را تغییر داده باشد، این مرحله آن را به ریپازیتوری کامیت می‌کند
+      - name: Commit and push if README changed
+        run: |
+          # بررسی اینکه آیا فایلی تغییر کرده است یا نه
+          git diff --quiet || (
+            # تنظیمات کاربر گیت برای کامیت
+            git config --global user.name 'GitHub Actions Bot'
+            git config --global user.email 'actions@github.com'
+            # اضافه کردن فایل README.md به stage
+            git add README.md
+            # کامیت کردن تغییرات با یک پیام مشخص
+            git commit -m "docs: auto-update CSV data table"
+            # پوش کردن تغییرات به ریپازیتوری
+            git push
+          )

@@ -16,3 +16,24 @@ class CorePermissions(models.Model):
             ("CKeditor_Uplode_Product_image", "آپلود عکس در توضیحات محصولات با ادیتور"),
         ]
 
+
+class ShopInformation(models.Model):
+    name = models.CharField(
+        'نام',
+        max_length=255,
+        unique=True,
+        help_text='مثلا: instagram, telegram channel, ...'
+    )
+    value = models.CharField(
+        'اطلاعات',
+        max_length=1000,
+        blank=True,
+        help_text='مثلا: SeedHosein0'
+    )
+
+    class Meta:
+        verbose_name = 'اطلاعات فروشگاه'
+        verbose_name_plural = 'اطلاعات فروشگاه'
+    
+    def __str__(self):
+        return self.name

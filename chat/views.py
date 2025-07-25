@@ -3,6 +3,8 @@ from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse
 from django.conf import settings
+
+from core.models import ShopInformation
 from .models import ChatSession, ChatMessage
 # from django.utils.translation import gettext_lazy as _ # No longer needed
 from django.http import Http404
@@ -44,6 +46,7 @@ class ChatRoomView(LoginRequiredMixin, View):
             'current_user_email': request.user.email
         }
         context['SHOP_NAME'] = settings.SHOP_NAME
+        context['ShopInformation'] = ShopInformation.objects.all()
         return render(request, 'chat/chat_room.html', context)
 
 class SupportStaffRequiredMixin(UserPassesTestMixin):
@@ -59,6 +62,7 @@ class SupportChatDashboardView(LoginRequiredMixin, SupportStaffRequiredMixin, Vi
             'active_sessions': active_sessions
         }
         context['SHOP_NAME'] = settings.SHOP_NAME
+        context['ShopInformation'] = ShopInformation.objects.all()
         return render(request, 'chat/support_chat_dashboard.html', context)
 
 # Potentially, a view for support staff to join a specific chat (similar to ChatRoomView but with staff context)
@@ -81,4 +85,5 @@ class SupportJoinChatView(LoginRequiredMixin, SupportStaffRequiredMixin, View):
             'current_user_email': request.user.email
         }
         context['SHOP_NAME'] = settings.SHOP_NAME
+        context['ShopInformation'] = ShopInformation.objects.all()
         return render(request, 'chat/chat_room.html', context)

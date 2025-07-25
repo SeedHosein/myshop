@@ -58,7 +58,7 @@ Follow these steps to get the project running locally.
 ### 2. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/SeedHosein/myshop.git
 cd myshop
 cp .env.sample .env
 ```
@@ -117,3 +117,25 @@ You may need to create a superuser to access the admin areas:
 ```bash
 python manage.py createsuperuser
 ``` 
+
+## Optional: 
+### It is best to enter the following information on your store's admin page in the "اطلاعات فروشگاه" module:
+
+**note: To use this feature, be sure to copy the name in the table into the Name field on the admin page and do not change its name.**
+<!-- Shop information items start -->
+<!-- Shop information items end -->
+
+---
+
+### مشارکت‌کنندگان (Contributors)
+
+این پروژه توسط سیدحسین، همچنین با نام کاربری **SeedHosein** در گیت‌هاب، توسعه داده شده است.
+برای دیدن پروژه‌های بیشتر یا ارتباط با من، می‌توانید از طریق پروفایل گیت‌هاب من اقدام کنید:
+
+[https://github.com/SeedHosein](https://github.com/SeedHosein)
+
+---
+
+## لایسنس (License)
+
+این پروژه تحت لایسنس MIT منتشر شده است. برای اطلاعات بیشتر، فایل `LICENSE` را در ریشه پروژه مشاهده کنید.

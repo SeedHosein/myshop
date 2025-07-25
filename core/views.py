@@ -9,7 +9,8 @@ from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import default_storage
-from products.models import Product, Category, ProductImage, ProductVideo
+
+from products.models import Product, Category
 from cart_and_orders.models import Cart, CartItem
 
 # Create your views here.
@@ -21,9 +22,18 @@ class HomePageView(TemplateView):
         context['SHOP_NAME'] = settings.SHOP_NAME
         
         products = Product.objects.filter(is_active=True)
-        # categorys = Category.objects.filter(is_active=True)
+        popular_products = products.order_by('-hit_count_generic__hits')[:10]
+        context['popular_products'] = popular_products
+        categorys = Category.objects.all()
+        popular_category = categorys.order_by('-hit_count_generic__hits')[:5]
+        context['popular_category'] = popular_category
         
         return context
+
+
+
+
+
 
 
 class CKeditorUplodeFile(View):

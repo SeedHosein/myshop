@@ -4,13 +4,15 @@ from django.http import Http404
 from django.conf import settings
 from hitcount.views import HitCountDetailView
 
+
 from .models import StaticPage
+from core.models import ShopInformation
 
 class StaticPageView(HitCountDetailView):
     model = StaticPage
     template_name = 'static_pages/static_page_detail.html'
     context_object_name = 'page'
-    slug_url_kwarg = 'slug' # Matches the slug parameter in your urls.py
+    slug_url_kwarg = 'slug_page_detail' # Matches the slug parameter in your urls.py
     
     count_hit = True
 
@@ -32,6 +34,7 @@ class StaticPageView(HitCountDetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
+        context['ShopInformation'] = ShopInformation.objects.all()
         return context
 
 
