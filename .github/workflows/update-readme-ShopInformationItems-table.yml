@@ -9,44 +9,81 @@ on:
 
 # بخش jobs: وظایفی که باید انجام شوند را تعریف می‌کند
 jobs:
-  update-table-job:
-    # سیستم‌عاملی که این وظیفه روی آن اجرا می‌شود (معمولاً ubuntu-latest)
+  build:
     runs-on: ubuntu-latest
 
-    # مراحل (steps) اجرای وظیفه
+    # بخش مهم: تعریف دسترسی‌ها
+    # این خط به اکشن اجازه می‌دهد که فایل README.md را ویرایش و کامیت کند
+    permissions:
+      contents: write
+    
     steps:
-      # مرحله ۱: کپی کردن کد ریپازیتوری به ماشین مجازی اکشن
-      # این کار لازم است تا اکشن به فایل‌های شما (CSV و README) دسترسی داشته باشد
-      - name: Check out repository code
+      # مرحله ۱: کپی کردن کد ریپازیتوری
+      - name: Check out repo
         uses: actions/checkout@v4
 
-      # مرحله ۲: اجرای اکشن اصلی برای تبدیل CSV به جدول
-      # ما از یک اکشن آماده به نام `csv-to-markdown-table-action` استفاده می‌کنیم
-      - name: Generate Markdown Table from CSV
-        uses: cuchi/csv-to-markdown-table-action@v1.3.1
-        with:
-          # مسیر فایل CSV ورودی
-          csv-file: './ShopInformationItems.csv'
-          # مسیر فایل README.md که باید آپدیت شود
-          readme-file: './README.md'
-          # نشانگر شروع که در README قرار دادیم
-          target-marker-start: '<!-- Shop information items start -->'
-          # نشانگر پایان
-          target-marker-end: '<!-- Shop information items end -->'
+      # مرحله ۲: اجرای اسکریپت پایتون برای تبدیل CSV و آپدیت README
+      - name: Update README Shop information table with Python script
+        # در این بخش، یک اسکریپت پایتون را مستقیماً اجرا می‌کنیم
+        run: |
+          python - <<'END_OF_PYTHON_SCRIPT'
+          import csv
+          import re
 
-      # مرحله ۳: کامیت کردن تغییرات در فایل README.md
-      # اگر اکشن مرحله قبل، فایل README را تغییر داده باشد، این مرحله آن را به ریپازیتوری کامیت می‌کند
+          # --- تنظیمات ---
+          CSV_FILE_PATH = 'ShopInformationItems.csv'  # <--- مسیر فایل CSV خود را اینجا وارد کنید
+          README_FILE_PATH = 'README.md'
+          START_MARKER = '<!-- Shop information items start -->'
+          END_MARKER = '<!-- Shop information items end -->'
+          # --- پایان تنظیمات ---
+
+          # خواندن داده‌های CSV
+          with open(CSV_FILE_PATH, 'r', encoding='utf-8') as f:
+              reader = csv.reader(f)
+              data = list(reader)
+
+          if not data:
+              print("CSV is empty. No table generated.")
+              exit()
+          
+          # ساخت جدول مارک‌داون
+          header = [f" {col.strip()} " for col in data[0]]
+          separator = ['---' for _ in header]
+          rows = [[f" {item.strip()} " for item in row] for row in data[1:]]
+
+          table_lines = [
+              '|' + '|'.join(header) + '|',
+              '|' + '|'.join(separator) + '|'
+          ]
+          for row in rows:
+              table_lines.append('|' + '|'.join(row) + '|')
+          
+          markdown_table = "\n".join(table_lines)
+
+          # خواندن فایل README
+          with open(README_FILE_PATH, 'r', encoding='utf-8') as f:
+              readme_content = f.read()
+
+          # جایگزینی محتوای بین نشانگرها با جدول جدید
+          # از re.DOTALL استفاده می‌کنیم تا `.` با خطوط جدید هم مچ شود
+          pattern = re.compile(f"({re.escape(START_MARKER)})(.*?)({re.escape(END_MARKER)})", re.DOTALL)
+          
+          new_readme_content = pattern.sub(f"\\1\n{markdown_table}\n\\3", readme_content)
+
+          # نوشتن محتوای جدید در فایل README
+          with open(README_FILE_PATH, 'w', encoding='utf-8') as f:
+              f.write(new_readme_content)
+              
+          print("README.md has been updated successfully.")
+          END_OF_PYTHON_SCRIPT
+
+      # مرحله ۳: کامیت و پوش کردن تغییرات در صورت وجود
       - name: Commit and push if README changed
         run: |
-          # بررسی اینکه آیا فایلی تغییر کرده است یا نه
           git diff --quiet || (
-            # تنظیمات کاربر گیت برای کامیت
             git config --global user.name 'GitHub Actions Bot'
             git config --global user.email 'actions@github.com'
-            # اضافه کردن فایل README.md به stage
             git add README.md
-            # کامیت کردن تغییرات با یک پیام مشخص
             git commit -m "docs: auto-update CSV data table"
-            # پوش کردن تغییرات به ریپازیتوری
             git push
           )
