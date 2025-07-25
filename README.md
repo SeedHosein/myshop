@@ -129,8 +129,9 @@ python manage.py createsuperuser
 <!-- Shop information items start -->
 | name | help |
 |---|---|
-| about | Store "About Us" page. Create a static page for the "About Us" page and put its slug here. |
-| contact_us | Store "Contact us" page. Create a static page for the "Contact us" page and put its slug here. |
+| about-us | Store's "About Us" page. Create a static page for the "About Us" page and put its slug here. |
+| contact-us | Store's "Contact us" page. Create a static page for the "Contact us" page and put its slug here. |
+| home-page-article | Article below the store home page. Create an unpublished static page with the desired title and "slug" and put its "slug" in "value". All the content of that page will be displayed below the home page. This is for SEO. |
 <!-- Shop information items end -->
 
 ---
