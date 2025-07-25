@@ -123,6 +123,10 @@ python manage.py createsuperuser
 
 **note: To use this feature, be sure to copy the name in the table into the Name field on the admin page and do not change its name.**
 <!-- Shop information items start -->
+| name | help |
+|---|---|
+| about | Store "About Us" page. Create a static page for the "About Us" page and put its slug here. |
+| contact_us | Store "Contact us" page. Create a static page for the "Contact us" page and put its slug here. |
 <!-- Shop information items end -->
 
 ---
