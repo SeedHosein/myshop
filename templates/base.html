@@ -2,11 +2,13 @@
 {% load static %}
 {% load i18n %}
 {% load shop_information_tags %}
+
 <html lang="fa-ir" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}فروشگاه {{ SHOP_NAME }}{% endblock title %}</title>
+    <link rel="stylesheet" href="{% static "css/ckeditor5-content.css" %}">
     <link rel="stylesheet" href="{% static 'css/base_styles.css' %}">
     {% block extra_head %}{% endblock extra_head %}
 </head>
@@ -185,17 +187,16 @@
                 <!-- About Us -->
                 <div>
                     <h3 class="text-4xl font-bold mb-0 mt-0">{{ SHOP_NAME }}</h3>
-                    {% comment %} <p class="text-gray-400 text-sm leading-loose">ما باور داریم که خرید آنلاین باید ساده، لذت‌بخش و مطمئن باشد. به همین دلیل بهترین‌ها را برای شما گرد هم آورده‌ایم.</p> {% endcomment %}
                     <ul class="space-y-3">
-                        {% get_shop_information_value 'about' as about_slug %}
-                        {% if about_slug %}
-                            <li><a href="{% url 'static_pages:static_page_detail' slug_page_detail=about_slug %}" class="text-gray-400 hover:text-white transition-colors">درباره {{ SHOP_NAME }}</a></li>
+                        {% get_shop_information_value 'about-us' as about_us_slug %}
+                        {% if about_us_slug %}
+                        <li><a href="{% url 'static_pages:static_page_detail' slug_page_detail=about_us_slug %}" class="text-gray-400 hover:text-white transition-colors">درباره {{ SHOP_NAME }}</a></li>
                         {% endif %}
-                        <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors"></a></li>
-                        <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors"></a></li>
-                        {% get_shop_information_value 'contact_us' as contact_us_slug %}
+                        {% comment %} <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors"></a></li>
+                        <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors"></a></li> {% endcomment %}
+                        {% get_shop_information_value 'contact-us' as contact_us_slug %}
                         {% if contact_us_slug %}
-                            <li><a href="{% url 'static_pages:static_page_detail' slug_page_detail=contact_us_slug %}" class="text-gray-400 hover:text-white transition-colors">تماس با ما</a></li>
+                        <li><a href="{% url 'static_pages:static_page_detail' slug_page_detail=contact_us_slug %}" class="text-gray-400 hover:text-white transition-colors">تماس با ما</a></li>
                         {% endif %}
                     </ul>
                     <div class="flex space-x-4 mt-6">
@@ -233,7 +234,11 @@
                     </form>
                 </div>
             </div>
-            
+            {% if home_page_article_content %}
+                <article class="ck-content">
+                {{ home_page_article_content|safe }}
+            </article>
+            {% endif %}
         <div class="border-t border-gray-700 pt-6 text-gray-500 container text-center text-sm">
             <span class="text-muted">تمامی حقوق برای فروشگاه {{ SHOP_NAME }} محفوظ است - &copy; {% now "Y" %}</span>
         </div>

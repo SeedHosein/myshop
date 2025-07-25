@@ -12,7 +12,6 @@ from hitcount.utils import get_hitcount_model
 
 from .models import Product, Category, ProductImage, ProductVideo
 from cart_and_orders.models import Cart, CartItem
-from core.models import ShopInformation
 
 
 import os
@@ -54,7 +53,6 @@ class ProductListView(ListView, HitCountMixin):
 
         
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         
         context['categories'] = Category.objects.filter(parent__isnull=True) # Top-level categories
         context['current_category'] = None
@@ -79,7 +77,6 @@ class ProductDetailView(HitCountDetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         
         product = self.get_object()
         context['images'] = ProductImage.objects.filter(product=product)

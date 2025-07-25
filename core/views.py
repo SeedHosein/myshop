@@ -11,6 +11,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import default_storage
 
 from products.models import Product, Category
+from core.models import ShopInformation
+from static_pages.models import StaticPage
 from cart_and_orders.models import Cart, CartItem
 
 # Create your views here.
@@ -20,6 +22,17 @@ class HomePageView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
+        home_page_article_content = ""
+        try:
+            home_page_article_slug = ShopInformation.objects.get(name="home-page-article").value
+            home_page_article_content = StaticPage.objects.get(slug=home_page_article_slug).content
+        except ShopInformation.DoesNotExist:
+            home_page_article_content = ""
+        except StaticPage.DoesNotExist:
+            home_page_article_content = ""
+        
+        context['home_page_article_content'] = home_page_article_content
+        
         
         products = Product.objects.filter(is_active=True)
         popular_products = products.order_by('-hit_count_generic__hits')[:10]

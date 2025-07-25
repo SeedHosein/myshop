@@ -22,10 +22,10 @@ class ShopInformation(models.Model):
         'نام',
         max_length=255,
         unique=True,
-        help_text='مثلا: instagram, telegram channel, ...'
+        help_text='مثلا: instagram, telegram-channel, ...'
     )
     value = models.CharField(
-        'اطلاعات',
+        'مقدار',
         max_length=1000,
         blank=True,
         help_text='مثلا: SeedHosein0'

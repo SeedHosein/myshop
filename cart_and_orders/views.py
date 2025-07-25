@@ -11,7 +11,6 @@ from django.utils import timezone
 from django.conf import settings
 from decimal import Decimal
 
-from core.models import ShopInformation
 from products.models import Product # Assuming Product model is in products app
 from .models import Cart, CartItem, Order, OrderItem
 from .forms import AddToCartForm, CheckoutForm, DiscountApplyForm
@@ -122,7 +121,6 @@ class CartDetailView(TemplateView):
         total_price = 0
         item_count = 0
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
 
         if self.request.user.is_authenticated:
             cart, created = Cart.objects.get_or_create(user=self.request.user)
@@ -453,7 +451,6 @@ class CheckoutView(LoginRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         
         if self.request.user.is_authenticated:
             cart = get_object_or_404(Cart, user=self.request.user)
@@ -616,7 +613,6 @@ class OrderConfirmationView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         
         last_order_id = self.request.session.get('last_order_id')
         if last_order_id:

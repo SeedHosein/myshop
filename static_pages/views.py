@@ -6,7 +6,6 @@ from hitcount.views import HitCountDetailView
 
 
 from .models import StaticPage
-from core.models import ShopInformation
 
 class StaticPageView(HitCountDetailView):
     model = StaticPage
@@ -34,7 +33,6 @@ class StaticPageView(HitCountDetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return context
 
 

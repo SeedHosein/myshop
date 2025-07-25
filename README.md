@@ -46,6 +46,8 @@ The project is organized into several Django apps, each responsible for a specif
 *   `reviews`: Manages user-submitted product reviews.
 *   `static_pages`: For simple, static content pages.
 
+---
+
 ## Setup and Installation
 
 Follow these steps to get the project running locally.
@@ -118,6 +120,8 @@ You may need to create a superuser to access the admin areas:
 python manage.py createsuperuser
 ``` 
 
+---
+
 ## Optional: 
 ### It is best to enter the following information on your store's admin page in the "اطلاعات فروشگاه" module:
 
@@ -130,16 +134,14 @@ python manage.py createsuperuser
 <!-- Shop information items end -->
 
 ---
+## Contributors
 
-### مشارکت‌کنندگان (Contributors)
+This project was developed by Seyed Hossein, also known as **SeedHosein** on GitHub.
+To see more projects or to get in touch:
+*   visit my GitHub profile: [https://github.com/SeedHosein](https://github.com/SeedHosein)
+*   message my instagram: [https://instagram.com/seedhosein0](https://instagram.com/seedhosein0)
+*   email to: [seedhosein0@gmail.com](mailto:seedhosein0@gmail.com)
 
-این پروژه توسط سیدحسین، همچنین با نام کاربری **SeedHosein** در گیت‌هاب، توسعه داده شده است.
-برای دیدن پروژه‌های بیشتر یا ارتباط با من، می‌توانید از طریق پروفایل گیت‌هاب من اقدام کنید:
+## License
 
-[https://github.com/SeedHosein](https://github.com/SeedHosein)
-
----
-
-## لایسنس (License)
-
-این پروژه تحت لایسنس MIT منتشر شده است. برای اطلاعات بیشتر، فایل `LICENSE` را در ریشه پروژه مشاهده کنید.
+This project is released under the MIT License. For more information, see the `LICENSE` file in the project root.

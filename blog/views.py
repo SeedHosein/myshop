@@ -14,8 +14,6 @@ from django.http import Http404
 from hitcount.views import HitCountDetailView, HitCountMixin
 from hitcount.utils import get_hitcount_model
 
-from core.models import ShopInformation
-
 from .models import BlogPost, BlogCategory, BlogComment
 from .forms import BlogCommentForm
 
@@ -59,7 +57,6 @@ class BlogListView(ListView, HitCountMixin):
 
         
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         
         context['category'] = self.category
         context['categories'] = BlogCategory.objects.all()
@@ -80,7 +77,6 @@ class BlogDetailView(HitCountDetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         
         post = self.get_object()
         context['comments'] = post.comments.filter(status=BlogComment.STATUS_APPROVED).select_related('user').order_by('created_at')

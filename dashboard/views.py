@@ -18,8 +18,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.cache import cache
 
-from core.models import ShopInformation
-
 from discounts_and_campaigns.models import Discount, Campaign
 from reviews.models import ProductReview # Assuming ProductReview is in reviews.models
 # from .forms import DiscountForm, CampaignForm # We'll create these if needed for more complex validation or fields
@@ -57,7 +55,6 @@ class DiscountListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return context
 
 class DiscountCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
@@ -91,7 +88,6 @@ class DiscountCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
         form = form_class(instance=instance)
         context = {'form': form, 'object': instance}
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return render(request, self.template_name, context)
 
     def post(self, request, pk=None):
@@ -105,7 +101,6 @@ class DiscountCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
             return redirect(self.success_url)
         context = {'form': form, 'object': instance}
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return render(request, self.template_name, context)
     
     def get_form_class(self):
@@ -122,7 +117,6 @@ class DiscountDeleteView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return context
 
     def post(self, request, *args, **kwargs):
@@ -144,7 +138,6 @@ class CampaignListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return context
 
 class CampaignCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
@@ -178,7 +171,6 @@ class CampaignCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
         form = form_class(instance=instance)
         context = {'form': form, 'object': instance}
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return render(request, self.template_name, context)
 
     def post(self, request, pk=None):
@@ -192,7 +184,6 @@ class CampaignCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
             return redirect(self.success_url)
         context = {'form': form, 'object': instance}
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return render(request, self.template_name, context)
 
     def get_form_class(self):
@@ -209,7 +200,6 @@ class CampaignDeleteView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return context
 
     def post(self, request, *args, **kwargs):
@@ -233,7 +223,6 @@ class ProductListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return context
 
 class ProductCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
@@ -269,7 +258,6 @@ class ProductCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
         form = self.get_form_class()(instance=instance)
         context = {'form': form, 'object': instance}
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return render(request, self.template_name, context)
 
     def post(self, request, pk=None):
@@ -282,7 +270,6 @@ class ProductCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
             return redirect(self.success_url)
         context = {'form': form, 'object': instance}
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return render(request, self.template_name, context)
 
 class ProductDeleteView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, DeleteView):
@@ -295,7 +282,6 @@ class ProductDeleteView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return context
 
     def post(self, request, *args, **kwargs):
@@ -314,7 +300,6 @@ class OrderListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return context
 
     def get_queryset(self):
@@ -338,7 +323,6 @@ class OrderDetailView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return context
 
 
@@ -357,7 +341,6 @@ class CategoryListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return context
 
 class CategoryCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
@@ -393,7 +376,6 @@ class CategoryCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
         form = self.get_form_class()(instance=instance)
         context = {'form': form, 'object': instance}
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return render(request, self.template_name, context)
 
     def post(self, request, pk=None):
@@ -406,7 +388,6 @@ class CategoryCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
             return redirect(self.success_url)
         context = {'form': form, 'object': instance}
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return render(request, self.template_name, context)
 
 class CategoryDeleteView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, DeleteView):
@@ -435,7 +416,6 @@ class UserListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return context
 
 class UserUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
@@ -449,7 +429,6 @@ class UserUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessage
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return context
 
     def get_form(self, form_class=None):
@@ -514,7 +493,6 @@ class ProductReviewManagementView(LoginRequiredMixin, PermissionRequiredMixin, L
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         
         context['review_statuses'] = ProductReview.REVIEW_STATUS_CHOICES
         context['current_status_filter'] = self.request.GET.get('status', 'all')
@@ -646,7 +624,6 @@ class DashboardHomeView(LoginRequiredMixin, PermissionRequiredMixin, View):
             'published_posts_count': published_posts_count,
             'recent_posts': recent_posts,
             'SHOP_NAME': settings.SHOP_NAME,
-            'ShopInformation' : ShopInformation.objects.all(),
         }
         
         context.update(original_context)
@@ -672,7 +649,6 @@ class BlogListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return context
 
 
@@ -717,7 +693,6 @@ class BlogCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
         form = self.get_form_class()(instance=instance)
         context = {'form': form, 'object': instance}
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return render(request, self.template_name, context)
 
     def post(self, request, pk=None):
@@ -730,7 +705,6 @@ class BlogCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
             return redirect(self.success_url)
         context = {'form': form, 'object': instance}
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return render(request, self.template_name, context)
 
 class BlogDeleteView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, DeleteView):
@@ -743,7 +717,6 @@ class BlogDeleteView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessage
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         context['success_url'] = self.success_url
         return context
 
@@ -764,7 +737,6 @@ class BlogCategoryListView(LoginRequiredMixin, PermissionRequiredMixin, ListView
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return context
 
 class BlogCategoryCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View):
@@ -800,7 +772,6 @@ class BlogCategoryCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View
         form = self.get_form_class()(instance=instance)
         context = {'form': form, 'object': instance}
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return render(request, self.template_name, context)
 
     def post(self, request, pk=None):
@@ -813,7 +784,6 @@ class BlogCategoryCreateUpdateView(LoginRequiredMixin, SuccessMessageMixin, View
             return redirect(self.success_url)
         context = {'form': form, 'object': instance}
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return render(request, self.template_name, context)
 
 class BlogCategoryDeleteView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, DeleteView):
@@ -826,7 +796,6 @@ class BlogCategoryDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Succes
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return context
 
     def post(self, request, *args, **kwargs):
@@ -857,7 +826,6 @@ class BlogCommentManagementView(LoginRequiredMixin, PermissionRequiredMixin, Lis
         context['approved_count'] = BlogComment.objects.filter(status=BlogComment.STATUS_APPROVED).count()
         context['rejected_count'] = BlogComment.objects.filter(status=BlogComment.STATUS_REJECTED).count()
         context['SHOP_NAME'] = settings.SHOP_NAME
-        context['ShopInformation'] = ShopInformation.objects.all()
         return context
 
 class UpdateBlogCommentStatusView(LoginRequiredMixin, PermissionRequiredMixin, View):
