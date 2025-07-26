@@ -27,7 +27,7 @@ class Cart(models.Model):
     @property
     def subtotal_price(self):
         """Total price of active items before any cart-level discount."""
-        for item in self.items.filter(is_saved_for_later=False):
+        for item in self.items.all():
             if not item.product.is_active:
                 item.delete()
         return sum(item.get_total_price() for item in self.items.filter(is_saved_for_later=False) if item.product and item.product.price is not None)
@@ -36,6 +36,13 @@ class Cart(models.Model):
     def final_price(self):
         """Final price after applying cart-level discount."""
         return self.subtotal_price - self.discount_amount
+    
+    @property
+    def total_items(self):
+        for item in self.items.all():
+            if not item.product.is_active:
+                item.delete()
+        return sum(item.quantity for item in self.items.filter(is_saved_for_later=False))
 
     def clear_discount(self):
         self.applied_discount_code = None

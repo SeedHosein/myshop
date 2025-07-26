@@ -56,6 +56,7 @@ def calculate_session_cart_totals(cart_data):
         item_count += int(item_details.get('quantity', 0))
     cart_data['original_total_price'] = total_price
     cart_data['item_count'] = item_count
+    print(item_count)
     if cart_data.get('discount_code'):
         applied_discount_amount = Decimal(str(cart_data.get('discount_amount', '0.00')))
         cart_data['total_price'] = total_price - applied_discount_amount
@@ -140,7 +141,7 @@ class CartDetailView(TemplateView):
             item_count = sum(i['quantity'] for i in cart_items_active)
 
             for item in saved_items_query:
-                 cart_items_saved_for_later.append({
+                cart_items_saved_for_later.append({
                     'item': item,
                     'product': item.product,
                     'quantity': item.quantity,
@@ -152,7 +153,6 @@ class CartDetailView(TemplateView):
             context['discount_amount'] = cart.discount_amount
             context['subtotal_cart_price'] = cart.subtotal_price # Explicitly pass subtotal
             context['final_cart_price'] = cart.final_price
-            context['total_cart_items'] = cart.subtotal_price
         else:
             # Session cart
             session_cart_data = get_session_cart(self.request.session)
@@ -178,10 +178,6 @@ class CartDetailView(TemplateView):
             context['applied_discount_code'] = session_cart_data.get('discount_code')
             context['discount_amount'] = Decimal(str(session_cart_data.get('discount_amount', '0.00')))
             context['subtotal_cart_price'] = Decimal(str(session_cart_data.get('original_total_price', '0.00')))
-            context['final_cart_price'] = total_price # which is already discount-adjusted if applicable
-            context['total_cart_items'] = item_count
-            # Add a form for applying discount code
-            context['discount_apply_form'] = DiscountApplyForm()
         context['cart_items_active'] = cart_items_active
         context['cart_items_saved_for_later'] = cart_items_saved_for_later
         context['total_cart_price'] = total_price # This might now be the discounted price
@@ -194,6 +190,7 @@ class AddToCartView(View):
     def post(self, request, *args, **kwargs):
         form = AddToCartForm(request.POST)
         if form.is_valid():
+            session_cart = get_session_cart(request.session)
             product_id = form.cleaned_data['product_id']
             quantity = int(form.cleaned_data['quantity'])
             product = get_object_or_404(Product, id=product_id, is_active=True)
@@ -216,9 +213,15 @@ class AddToCartView(View):
                     cart_item.quantity += quantity
                 msg = f"تعداد محصول '{product.name}' در سبد شما بروزرسانی شد." if not created else f"محصول '{product.name}' به سبد شما اضافه شد."
                 cart.save() # Recalculate totals and save cart discount info
+                
+                session_cart = {
+                    'total_price': 0,
+                    'discount_amount': 0,
+                    'original_total_price': 0,
+                    'item_count': cart.total_items
+                }
             else:
                 # Session cart
-                session_cart = get_session_cart(request.session)
                 product_id_str = str(product.id)
                 if product_id_str in session_cart['items']:
                     session_cart['items'][product_id_str]['quantity'] += quantity
@@ -238,14 +241,15 @@ class AddToCartView(View):
                     msg = f"محصول '{product.name}' به سبد شما اضافه شد."
                 
                 session_cart = calculate_session_cart_totals(session_cart) # Recalculates totals and re-applies discount if any
-                save_session_cart(request.session, session_cart)
+                
+            save_session_cart(request.session, session_cart)
 
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 # For AJAX, return updated cart count and total, or full cart partial
                 if request.user.is_authenticated:
                     cart = Cart.objects.get(user=request.user) # Re-fetch cart to get latest totals with discount
-                    cart_total_items = cart.items.filter(is_saved_for_later=False).count()
                     cart_total_price = cart.final_price
+                    cart_total_items = cart.total_items
                 else:
                     cart_total_items = session_cart.get('item_count', 0)
                     cart_total_price = Decimal(str(session_cart.get('total_price', '0.00')))
@@ -268,13 +272,21 @@ class AddToCartView(View):
 
 class RemoveFromCartView(View):
     def post(self, request, item_id):
+        session_cart = get_session_cart(request.session)
         if request.user.is_authenticated:
             cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
             product_name = cart_item.product.name
             cart_item.delete()
             msg = f"محصول '{product_name}' از سبد شما حذف شد."
+            
+            session_cart = {
+                'total_price': 0,
+                'discount_amount': 0,
+                'original_total_price': 0,
+                'item_count': cart.total_items
+            }
+            save_session_cart(request.session, session_cart)
         else:
-            session_cart = get_session_cart(request.session)
             product_id_str = str(item_id) # For session cart, item_id will be product_id
             if product_id_str in session_cart['items']:
                 product_name = session_cart['items'][product_id_str].get('name', "محصول")
@@ -290,8 +302,14 @@ class RemoveFromCartView(View):
                 return redirect('cart_and_orders:cart_detail')
 
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            cart_total_items = Cart.objects.get(user=request.user).items.filter(is_saved_for_later=False).count()
-            cart_total_price = Cart.objects.get(user=request.user).subtotal_price if request.user.is_authenticated else session_cart.get('subtotal_price', 0)
+            # For AJAX, return updated cart count and total, or full cart partial
+            if request.user.is_authenticated:
+                cart = Cart.objects.get(user=request.user) # Re-fetch cart to get latest totals with discount
+                cart_total_price = cart.final_price
+                cart_total_items = cart.total_items
+            else:
+                cart_total_items = session_cart.get('item_count', 0)
+                cart_total_price = Decimal(str(session_cart.get('total_price', '0.00')))
             return JsonResponse({
                 'status': 'success', 
                 'message': msg,
@@ -314,6 +332,7 @@ class UpdateCartItemQuantityView(View):
             return redirect('cart_and_orders:cart_detail')
         
         item_total_price = 0
+        session_cart = get_session_cart(request.session)
 
         if request.user.is_authenticated:
             cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
@@ -328,8 +347,15 @@ class UpdateCartItemQuantityView(View):
             cart_item.save()
             item_total_price = cart_item.get_total_price()
             msg = f"تعداد برای '{cart_item.product.name}' بروزرسانی شد."
+            
+            session_cart = {
+                'total_price': 0,
+                'discount_amount': 0,
+                'original_total_price': 0,
+                'item_count': cart.total_items
+            }
+            save_session_cart(request.session, session_cart)
         else:
-            session_cart = get_session_cart(request.session)
             product_id_str = str(item_id) # For session cart, item_id is product_id
             if product_id_str in session_cart['items']:
                 try:
@@ -360,12 +386,12 @@ class UpdateCartItemQuantityView(View):
             if request.user.is_authenticated:
                 cart = Cart.objects.get(user=request.user) # Re-fetch cart
                 item_total_price_str = f"{item_total_price:.2f}"
-                cart_total_items = cart.items.filter(is_saved_for_later=False).count()
-                cart_total_price = f"{cart.final_price:.2f}"
+                cart_total_price = cart.final_price
+                cart_total_items = cart.total_items
             else:
                 item_total_price_str = f"{item_total_price:.2f}"
                 cart_total_items = session_cart.get('item_count', 0)
-                cart_total_price = f"{Decimal(str(session_cart.get('subtotal_price', '0.00'))):.2f}"
+                cart_total_price = f"{Decimal(str(session_cart.get('total_price', '0.00'))):.2f}"
             return JsonResponse({
                 'status': 'success', 
                 'message': msg,
@@ -401,10 +427,9 @@ class SaveForLaterView(View):
 
         # Recalculate cart totals for authenticated user
         cart = cart_item.cart
-        cart_total_items = cart.items.filter(is_saved_for_later=False).count()
         cart_total_price = f"{cart.final_price:.2f}"
-        active_items_count = cart.items.filter(is_saved_for_later=False).count()
-        saved_items_count = cart.items.filter(is_saved_for_later=True).count()
+        cart_total_items = cart.total_items
+        saved_items_count = sum(item.quantity for item in cart.items.filter(is_saved_for_later=True))
 
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({
@@ -414,7 +439,6 @@ class SaveForLaterView(View):
                 'is_saved': cart_item.is_saved_for_later,
                 'cart_total_items': cart_total_items, # This is total of active items
                 'cart_total_price': cart_total_price,
-                'active_items_count': active_items_count,
                 'saved_items_count': saved_items_count
             })
 
@@ -695,12 +719,13 @@ class ApplyDiscountView(View):
             if request.user.is_authenticated:
                 cart, _ = Cart.objects.get_or_create(user=request.user)
                 cart.clear_discount()
+                
                 return JsonResponse({
                     'success': True, 'message': "تخفیف حذف شد.",
                     'original_total': f"{cart.subtotal_price:.2f}",
                     'final_total': f"{cart.final_price:.2f}",
                     'discount_amount': f"{cart.discount_amount:.2f}", # Should be 0.00
-                    'cart_total_items': cart.items.filter(is_saved_for_later=False).count(),
+                    'cart_total_items': cart.total_items,
                     'applied_discount_code': None
                 })
             else:
@@ -732,7 +757,7 @@ class ApplyDiscountView(View):
                     'discount_amount': f"{result['discount_amount']:.2f}",
                     'original_total': f"{cart_total_before_discount:.2f}",
                     'final_total': f"{result['final_total']:.2f}",
-                    'cart_total_items': cart.items.filter(is_saved_for_later=False).count(),
+                    'cart_total_items': cart.total_items,
                     'applied_discount_code': result['discount_code']
                 })
             else:

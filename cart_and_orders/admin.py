@@ -23,7 +23,7 @@ class CartAdmin(admin.ModelAdmin):
     total_items.short_description = "تعداد کل آیتم ها"
 
     def total_price(self, obj):
-        return obj.total_price
+        return obj.final_price
     total_price.short_description = "مجموع قیمت سبد (تومان)"
 
 class OrderItemInline(admin.TabularInline):

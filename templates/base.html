@@ -137,7 +137,7 @@
                 
                 <a href="{% url 'cart_and_orders:cart_detail' %}" class="relative text-gray-600 hover:text-primary-red transition-colors">
                     <i class="fas fa-shopping-bag text-xl"></i>
-                    <span class="absolute -top-2 -right-3 bg-primary-red text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">{{ request.session.cart.item_count|default:0 }}</span>
+                    <span class="absolute -top-2 -right-3 bg-primary-red text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold" id="cart-item-count">{{ request.session.cart.item_count|default:0 }}</span>
                 </a>
             </div>
              <!-- Mobile Menu Button -->
