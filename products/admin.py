@@ -1,8 +1,15 @@
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
 from hitcount.models import HitCount
-from .models import Category, Product, ProductImage, ProductVideo, ProductAttribute, ProductAttributeValue
-# from django.utils.translation import gettext_lazy as _ # No longer needed
+from .models import (
+    Category,
+    Product,
+    ProductImage,
+    ProductVariant,
+    ProductVideo,
+    ProductAttribute,
+    ProductAttributeValue
+)
 
 class HitCountInline(GenericTabularInline):
     ct_fk_field = "object_pk"
@@ -22,16 +29,33 @@ class CategoryAdmin(admin.ModelAdmin):
     )
 
 class ProductImageInline(admin.TabularInline):
+    """Inline for managing product images."""
     model = ProductImage
-    extra = 1
-    # Add fields to display in the inline form, e.g., 'image', 'alt_text', 'is_main'
-    fields = ('image', 'alt_text', 'is_main') 
-    # readonly_fields = ('image_preview',) # If you add an image_preview method to ProductImage model
+    extra = 1  
+    fields = ('image', 'alt_text', 'is_main')
+    verbose_name = "تصویر محصول"
+    verbose_name_plural = "تصاویر محصول"
+
 
 class ProductVideoInline(admin.TabularInline):
+    """Inline for managing product videos."""
     model = ProductVideo
-    extra = 1
+    extra = 1  
     fields = ('video_url', 'title')
+    verbose_name = "ویدیو محصول"
+    verbose_name_plural = "ویدیوهای محصول"
+
+
+class ProductVariantInline(admin.TabularInline):
+    """Inline for managing product variants."""
+    model = ProductVariant
+    extra = 1 
+    fields = ('attribute_values', 'sku', 'price_override', 'stock', 'is_active')
+    verbose_name = "تنوع محصول"
+    verbose_name_plural = "تنوع‌های محصول"
+    
+    autocomplete_fields = ('attribute_values',)
+    
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -39,7 +63,9 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ('is_active', 'product_type', 'category', 'created_at')
     search_fields = ('name', 'description_short', 'description_full')
     prepopulated_fields = {'slug': ('name',)}
-    inlines = [ProductImageInline, ProductVideoInline, HitCountInline]
+    inlines = [ProductImageInline, ProductVideoInline, ProductVariantInline, HitCountInline]
+    
+    list_editable = ('price', 'stock', 'is_active')
     # Adjust fieldsets based on actual fields and desired grouping in Persian
     fieldsets = (
         ("اطلاعات اصلی", {
@@ -52,9 +78,8 @@ class ProductAdmin(admin.ModelAdmin):
             'fields': ('price', 'discounted_price', 'stock')
         }),
         ("نوع و وضعیت محصول", {
-            'fields': ('product_type', 'downloadable_file', 'is_active')
+            'fields': ('is_active', 'product_type', 'downloadable_file')
         }),
-        # If you have M2M to ProductAttributeValue on Product model:
         # ("ویژگی های محصول", {
         #     'fields': ('attribute_values',) # Assuming 'attribute_values' is the M2M field name
         # }),
@@ -69,13 +94,15 @@ class ProductAttributeValueInline(admin.TabularInline):
 
 @admin.register(ProductAttribute)
 class ProductAttributeAdmin(admin.ModelAdmin):
+    """Admin configuration for ProductAttribute model."""
     list_display = ('name', 'display_name')
     search_fields = ('name', 'display_name')
-    inlines = [ProductAttributeValueInline] # This would be if AttributeValue was an inline TO Attribute, not Product
+    inlines = [ProductAttributeValueInline]
 
 @admin.register(ProductAttributeValue)
 class ProductAttributeValueAdmin(admin.ModelAdmin):
-    list_display = ('attribute', 'value')
+    """Admin configuration for ProductAttributeValue model."""
+    list_display = ('__str__', 'attribute', 'value')
     list_filter = ('attribute',)
     search_fields = ('value', 'attribute__name', 'attribute__display_name')
 
@@ -90,4 +117,4 @@ class ProductImageAdmin(admin.ModelAdmin):
 @admin.register(ProductVideo)
 class ProductVideoAdmin(admin.ModelAdmin):
     list_display = ('product', 'video_url', 'title', 'added_at')
-    list_filter = ('product',)
+    list_filter = ('product', 'added_at')
