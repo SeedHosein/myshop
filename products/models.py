@@ -1,3 +1,4 @@
+from random import randint
 from django.db import models
 from django.utils.text import slugify
 from django.urls import reverse
@@ -214,11 +215,6 @@ class ProductAttributeValue(models.Model):
     def __str__(self):
         return f"{self.attribute.display_name}: {self.value}"
 
-# --- ProductVariant Model (Recommended for future consideration) ---
-# If your products have variations (e.g., a T-shirt that comes in different colors and sizes,
-# each with potentially different SKUs, prices, or stock levels), a ProductVariant model is essential.
-
-# A basic ProductVariant model might look like this:
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants', verbose_name="محصول اصلی")
@@ -227,19 +223,25 @@ class ProductVariant(models.Model):
     price_override = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True, verbose_name="قیمت جایگزین (تومان)")
     stock = models.PositiveIntegerField(default=0, verbose_name="موجودی انبار")
     is_active = models.BooleanField(default=True, verbose_name="فعال")
+    is_deleted = False
+    ri = str(randint(10000000,99999999))
 
     class Meta:
         verbose_name = "تنوع محصول"
-        verbose_name_plural = "تنوع های محصول"
+        verbose_name_plural = "تنوع های محصولات"
 
     def __str__(self):
-        values = ", ".join([f"{val}" for val in self.attribute_values.all()])
-        return f"{self.product.name} - ({values if values else "None"})"
+        if self.is_deleted or not self.pk:
+            return f"{self.product.name}-(None)"
+        values = ",".join([f"{val.attribute.name}:{val.value}" for val in self.attribute_values.all()])
+        return f"{self.product.name}-({values if values else "None"})"
     
     @property
     def product_variant_name(self):
-        values = ",".join([f"{val.attribute.display_name}:{val.value}" for val in self.attribute_values.all()])
-        return f"{self.product.name}-({values if values else "None"})"
+        if self.is_deleted:
+            return f"{self.product.name}-(None)"
+        values = ",".join([f"{val.attribute.name}:{val.value}" for val in self.attribute_values.all()]) if self.pk else ""
+        return f"{self.product.name}-({values if values else f"None{self.ri}"})"
 
     @property
     def get_price(self):
@@ -251,13 +253,13 @@ class ProductVariant(models.Model):
         """
         Overrides save to clean the SKU and auto-generate if needed.
         """
+        if self.sku:
+            self.sku = self.sku.replace(' ', '-')
+        super().save(*args, **kwargs)
+        
+        
+    def delete(self, *args, **kwargs):
+        self.is_deleted = True
+        
+        super().delete(*args, **kwargs)
 
-        if not self.sku:
-            self.sku = self.product_variant_name
-        self.sku = self.sku.replace(' ', '-')
-
-        super().save(*args, **kwargs) 
-
-# This model would then be linked to the shopping cart and order items instead of the main Product
-# model if a specific variant is chosen. For now, we'll keep it simpler and assume attributes are informational
-# or managed without explicit variants for price/stock, but it's a key feature for many e-commerce sites.

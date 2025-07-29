@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
 from hitcount.models import HitCount
+
+from .forms import ProductVariantForm
 from .models import (
     Category,
     Product,
@@ -49,6 +51,7 @@ class ProductVideoInline(admin.TabularInline):
 class ProductVariantInline(admin.TabularInline):
     """Inline for managing product variants."""
     model = ProductVariant
+    form = ProductVariantForm
     extra = 1 
     fields = ('attribute_values', 'sku', 'price_override', 'stock', 'is_active')
     verbose_name = "تنوع محصول"
@@ -105,6 +108,14 @@ class ProductAttributeValueAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'attribute', 'value')
     list_filter = ('attribute',)
     search_fields = ('value', 'attribute__name', 'attribute__display_name')
+
+@admin.register(ProductVariant)
+class ProductVariantAdmin(admin.ModelAdmin):
+    list_display = ('sku', 'price_override', 'stock', 'is_active')
+    list_filter = ('attribute_values', 'is_active')
+    search_fields = ('attribute_values', 'sku')
+    filter_horizontal = ('attribute_values',)
+
 
 # ProductImage and ProductVideo are handled by inlines in ProductAdmin,
 # but can be registered separately if direct admin access is needed.
