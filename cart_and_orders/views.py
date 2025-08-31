@@ -1,7 +1,7 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, _get_queryset
 from django.views import View
 from django.views.generic import TemplateView, FormView
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -129,24 +129,49 @@ class CartDetailView(TemplateView):
             saved_items_query = cart.items.filter(is_saved_for_later=True)
             
             for item in active_items_query:
-                item_total = item.get_total_price()
-                cart_items_active.append({
-                    'item': item,
-                    'product': item.product,
-                    'quantity': item.quantity,
-                    'total_price': item_total,
-                    'update_form': AddToCartForm(initial={'quantity': item.quantity, 'product_id': item.product.id})
-                })
+                if item.product.is_active and item.product.stock > 0:
+                    if item.product.stock < item.quantity:
+                        item.quantity = item.product.stock
+                        item.save()
+                        msg = f"تعداد محصول '{item.product.name}' به علت کم بودن موجودی محصول در سبد خرید شما به '{item.quantity}' کاهش یافت. قبل از اتمام کامل موجودی خرید خود را تکمیل کنید."
+                        messages.warning(self.request, msg)
+                    item_total = item.get_total_price()
+                    cart_items_active.append({
+                        'item': item,
+                        'product': item.product,
+                        'quantity': item.quantity,
+                        'total_price': item_total,
+                        'update_form': AddToCartForm(initial={'quantity': item.quantity, 'product_id': item.product.id})
+                    })
+                else:
+                    product_name = item.product.name
+                    item.delete()
+                    msg = f"محصول '{product_name}' به علت تمام شدن موجودی از سبد خرید شما حذف شد."
+                    messages.warning(self.request, msg)
+
             total_price = sum(i['total_price'] for i in cart_items_active)
             item_count = sum(i['quantity'] for i in cart_items_active)
 
             for item in saved_items_query:
-                cart_items_saved_for_later.append({
-                    'item': item,
-                    'product': item.product,
-                    'quantity': item.quantity,
-                    'total_price': item.get_total_price()
-                })
+                if item.product.is_active and item.product.stock > 0:
+                    if item.product.stock < item.quantity:
+                        item.quantity = item.product.stock
+                        item.save()
+                        msg = f"تعداد محصول '{item.product.name}' به علت کم بودن موجودی محصول در سبد خرید بعدی شما به '{item.quantity}' کاهش یافت. قبل از اتمام کامل موجودی خرید خود را تکمیل کنید."
+                        messages.warning(self.request, msg)
+                    cart_items_saved_for_later.append({
+                        'item': item,
+                        'product': item.product,
+                        'quantity': item.quantity,
+                        'total_price': item.get_total_price()
+                    })
+                else:
+                    product_name = item.product.name
+                    item.delete()
+                    msg = f"محصول '{product_name}' به علت تمام شدن موجودی از سبد خرید بعدی شما حذف شد."
+                    messages.warning(self.request, msg)
+                    
+                    
             context['db_cart'] = cart # For direct reference if needed
             # Add discount info to context for authenticated user
             context['applied_discount_code'] = cart.applied_discount_code
@@ -156,21 +181,41 @@ class CartDetailView(TemplateView):
         else:
             # Session cart
             session_cart_data = get_session_cart(self.request.session)
+            session_cart = get_session_cart(self.request.session)
             for product_id_str, details in session_cart_data.get('items', {}).items():
                 try:
-                    product = Product.objects.get(id=int(product_id_str))
-                    item_total = Decimal(details.get('price', '0.00')) * int(details.get('quantity', 0))
-                    cart_items_active.append({
-                        'product': product,
-                        'quantity': details.get('quantity', 1),
-                        'total_price': item_total,
-                        'name_at_add': details.get('name'), # Store name in session in case product details change
-                        'price_at_add': details.get('price'),
-                        'update_form': AddToCartForm(initial={'quantity': details.get('quantity',1), 'product_id': product.id})
-                    })
+                    product = Product.objects.get(id=int(product_id_str), is_active=True)
+                    quantity = details.get('quantity', 1)
+                    if product.stock > 0:
+                        if product.stock < quantity:
+                            session_cart['items'][product_id_str].quantity = item.product.stock
+                            msg = f"تعداد محصول '{item.product.name}' به علت کم بودن موجودی محصول در سبد خرید شما به '{item.quantity}' کاهش یافت. قبل از اتمام کامل موجودی خرید خود را تکمیل کنید."
+                            messages.warning(self.request, msg)
+                        item_total = Decimal(details.get('price', '0.00')) * int(session_cart['items'][product_id_str]["quantity"])
+                        cart_items_active.append({
+                            'product': product,
+                            'quantity': session_cart['items'][product_id_str].get('quantity', 1),
+                            'total_price': item_total,
+                            'name_at_add': details.get('name'), # Store name in session in case product details change
+                            'price_at_add': details.get('price'),
+                            'update_form': AddToCartForm(initial={'quantity': session_cart['items'][product_id_str]["quantity"], 'product_id': product.id})
+                        })
+                    else:
+                        if product_id_str in session_cart['items']:
+                            product_name = session_cart['items'][product_id_str].get('name', "انتخابی")
+                            del session_cart['items'][product_id_str]
+                        msg = f"محصول '{product_name}' به علت تمام شدن موجودی از سبد خرید شما حذف شد."
+                        messages.warning(self.request, msg)
                 except Product.DoesNotExist:
-                    # Product might have been deleted, consider removing it from session cart here or notifying user
+                    if product_id_str in session_cart['items']:
+                        product_name = session_cart['items'][product_id_str].get('name', "انتخابی")
+                        del session_cart['items'][product_id_str]
+                    msg = f"محصول '{product_name}' به علت تمام شدن موجودی از سبد خرید شما حذف شد."
+                    messages.warning(self.request, msg)
                     continue 
+            if session_cart != session_cart_data:
+                session_cart = calculate_session_cart_totals(session_cart)
+                save_session_cart(self.request.session, session_cart)
             total_price = session_cart_data.get('total_price', Decimal('0.00')) # This is now final price
             item_count = session_cart_data.get('item_count', 0)
             # Saved for later not typically handled in session carts without more complex structure
@@ -206,13 +251,20 @@ class AddToCartView(View):
                 cart, _ = Cart.objects.get_or_create(user=request.user)
                 cart_item, created = cart.items.get_or_create(
                     product=product,
-                    is_saved_for_later=False, # Ensure we are targeting the active cart item
                     defaults={'quantity': quantity}
                 )
+                cart_item.is_saved_for_later = False
                 if not created:
+                    if product.stock < (cart_item.quantity+quantity):
+                        msg = f"موجودی محصول '{product.name}' کافی نیست. موجودی فعلی: {product.stock}"
+                        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                            return JsonResponse({'status': 'error', 'message': "موجودی کافی نیست.", 'current_stock': product.stock}, status=400)
+                        messages.error(request, msg)
+                        return redirect(request.META.get('HTTP_REFERER', 'products:product_list'))
+
                     cart_item.quantity += quantity
                 msg = f"تعداد محصول '{product.name}' در سبد شما بروزرسانی شد." if not created else f"محصول '{product.name}' به سبد شما اضافه شد."
-                cart.save() # Recalculate totals and save cart discount info
+                cart_item.save() # Recalculate totals and save cart discount info
                 
                 session_cart = {
                     'total_price': 0,
@@ -224,6 +276,12 @@ class AddToCartView(View):
                 # Session cart
                 product_id_str = str(product.id)
                 if product_id_str in session_cart['items']:
+                    if product.stock < (session_cart['items'][product_id_str]['quantity']+quantity):
+                        msg = f"موجودی محصول '{product.name}' کافی نیست. موجودی فعلی: {product.stock}"
+                        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                            return JsonResponse({'status': 'error', 'message': "موجودی کافی نیست.", 'current_stock': product.stock}, status=400)
+                        messages.error(request, msg)
+                        return redirect(request.META.get('HTTP_REFERER', 'products:product_list'))
                     session_cart['items'][product_id_str]['quantity'] += quantity
                     msg = f"تعداد محصول '{product.name}' در سبد شما بروزرسانی شد."
                 else:
@@ -250,15 +308,19 @@ class AddToCartView(View):
                     cart = Cart.objects.get(user=request.user) # Re-fetch cart to get latest totals with discount
                     cart_total_price = cart.final_price
                     cart_total_items = cart.total_items
+                    item_id = cart_item.id
                 else:
                     cart_total_items = session_cart.get('item_count', 0)
                     cart_total_price = Decimal(str(session_cart.get('total_price', '0.00')))
+                    item_id = str(product.id)
+                print(item_id)
                 
                 return JsonResponse({
                     'status': 'success',
                     'message': msg,
                     'cart_total_items': cart_total_items,
-                    'cart_total_price': f'{cart_total_price:.2f}'
+                    'cart_total_price': f'{cart_total_price:.2f}',
+                    'item_id': str(item_id)
                 })
             
             messages.success(request, msg)
@@ -271,10 +333,21 @@ class AddToCartView(View):
             return redirect(request.META.get('HTTP_REFERER', 'products:product_list'))
 
 class RemoveFromCartView(View):
-    def post(self, request, item_id):
+    def post(self, request, item_id=-1):
+        if item_id == -1:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'status': 'error', 'message': "کالا در سبد پیدا نشد."}, status=404)
+            raise Http404("کالا در سبد پیدا نشد.")
         session_cart = get_session_cart(request.session)
         if request.user.is_authenticated:
-            cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+            cart = get_object_or_404(Cart, user=request.user)
+            cart_item = cart.items.filter(id=item_id)
+            if cart_item:
+                cart_item = cart_item[0]
+            else:
+                raise Http404(
+                    "No %s matches the given query." % Cart.model._meta.object_name
+                )
             product_name = cart_item.product.name
             cart_item.delete()
             msg = f"محصول '{product_name}' از سبد شما حذف شد."
@@ -289,7 +362,7 @@ class RemoveFromCartView(View):
         else:
             product_id_str = str(item_id) # For session cart, item_id will be product_id
             if product_id_str in session_cart['items']:
-                product_name = session_cart['items'][product_id_str].get('name', "محصول")
+                product_name = session_cart['items'][product_id_str].get('name', "انتخابی")
                 del session_cart['items'][product_id_str]
                 session_cart = calculate_session_cart_totals(session_cart)
                 save_session_cart(request.session, session_cart)
@@ -315,14 +388,19 @@ class RemoveFromCartView(View):
                 'message': msg,
                 'cart_total_items': cart_total_items,
                 'cart_total_price': f'{cart_total_price:.2f}',
-                'removed_item_id': item_id # For updating UI
+                'removed_item_id': item_id, # For updating UI
+                'item_id': ""
             })
         
         messages.success(request, msg)
         return redirect('cart_and_orders:cart_detail')
 
 class UpdateCartItemQuantityView(View):
-    def post(self, request, item_id):
+    def post(self, request, item_id=-1):
+        if item_id == -1:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'status': 'error', 'message': "کالا در سبد پیدا نشد."}, status=404)
+            raise Http404("کالا در سبد پیدا نشد.")
         new_quantity = int(request.POST.get('quantity', 0))
         if new_quantity <= 0:
             # Treat as removal or error
@@ -335,7 +413,14 @@ class UpdateCartItemQuantityView(View):
         session_cart = get_session_cart(request.session)
 
         if request.user.is_authenticated:
-            cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+            cart = get_object_or_404(Cart, user=request.user)
+            cart_item = cart.items.filter(id=item_id)
+            if cart_item:
+                cart_item = cart_item[0]
+            else:
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'status': 'error', 'message': "کالا در سبد پیدا نشد."}, status=404)
+                raise Http404("کالا در سبد پیدا نشد.")
             if cart_item.product.stock < new_quantity:
                 msg = f"موجودی برای '{cart_item.product.name}' کافی نیست. موجودی: {cart_item.product.stock}"
                 if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -359,7 +444,7 @@ class UpdateCartItemQuantityView(View):
             product_id_str = str(item_id) # For session cart, item_id is product_id
             if product_id_str in session_cart['items']:
                 try:
-                    product = Product.objects.get(id=int(product_id_str))
+                    product = get_object_or_404(Product, id=int(product_id_str))
                     if product.stock < new_quantity:
                         msg = f"موجودی برای '{product.name}' کافی نیست. موجودی: {product.stock}"
                         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -666,6 +751,8 @@ def merge_session_cart_to_db(request):
             try:
                 product = Product.objects.get(id=int(product_id_str))
                 quantity = int(item_details.get('quantity', 1))
+                if quantity <=0:
+                    continue
                 if product.stock >= quantity:
                     cart_item, item_created = db_cart.items.get_or_create(
                         product=product,
@@ -695,7 +782,7 @@ def merge_session_cart_to_db(request):
                 db_cart.applied_discount_code = result['discount_code']
                 db_cart.discount_amount = result['discount_amount']
             else:
-                 messages.warning(request, f"امکان اعمال مجدد تخفیف '{session_discount_code}' از جلسه قبلی شما وجود ندارد: {result['message']}")
+                messages.warning(request, f"امکان اعمال مجدد تخفیف '{session_discount_code}' از جلسه قبلی شما وجود ندارد: {result['message']}")
         db_cart.save() # Save final cart state
         
         if 'cart' in request.session:

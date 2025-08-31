@@ -560,6 +560,18 @@
   content: "\f099"
 }
 
+.fa-chevron-left:before {
+  content: "\f053";
+}
+
+.fa-chevron-down:before {
+  content: "\f078";
+}
+
+.fa-trash-alt:before {
+    content: "\f2ed";
+}
+
 /* --- Custom & Utility Styles (Replicating Tailwind) --- */
 :root {
   --primary-red: #e53935;
@@ -956,6 +968,10 @@ a {
   flex: 1 1 0%;
 }
 
+.flex-grow-1 {
+  flex-grow: 1;
+}
+
 .gap-6 {
   gap: 1.5rem;
 }
@@ -1047,12 +1063,20 @@ a {
   margin-top: 0;
 }
 
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
 .mt-4 {
   margin-top: 1rem;
 }
 
 .mt-6 {
   margin-top: 1.5rem;
+}
+
+.mt-12 {
+  margin-top: 3rem;
 }
 
 .my-3 {
@@ -1111,6 +1135,10 @@ a {
 
 .w-10 {
   width: 2.5rem;
+}
+
+.h-4 {
+  height: 1rem;
 }
 
 .h-10 {

@@ -5,9 +5,12 @@ from django.views.generic import ListView, DetailView
 from django.http import Http404, JsonResponse
 from django.db.models import Q
 from django.conf import settings
+from django.contrib import messages
 from django.core.files.storage import default_storage
 from hitcount.views import HitCountDetailView, HitCountMixin
 from hitcount.utils import get_hitcount_model
+
+from cart_and_orders.views import calculate_session_cart_totals, get_session_cart, save_session_cart
 
 
 from .models import Product, Category, ProductImage, ProductVideo
@@ -51,8 +54,86 @@ class ProductListView(ListView, HitCountMixin):
 
             context['hitcount']['total_hits'] = hits
 
-        
+        cart_items_active = []
+        cart_items_saved_for_later = []
         context['SHOP_NAME'] = settings.SHOP_NAME
+
+        if self.request.user.is_authenticated:
+            cart, _ = Cart.objects.get_or_create(user=self.request.user)
+            active_items_query = cart.items.filter(is_saved_for_later=False)
+            saved_items_query = cart.items.filter(is_saved_for_later=True)
+            
+            for item in active_items_query:
+                if item.product.is_active and item.product.stock > 0:
+                    if item.product.stock < item.quantity:
+                        item.quantity = item.product.stock
+                        item.save()
+                        msg = f"تعداد محصول '{item.product.name}' به علت کم بودن موجودی محصول در سبد خرید شما به '{item.quantity}' کاهش یافت. قبل از اتمام کامل موجودی خرید خود را تکمیل کنید."
+                        messages.warning(self.request, msg)
+                    cart_items_active.append({
+                        'item': item,
+                        'product': item.product,
+                        'quantity': item.quantity,
+                    })
+                else:
+                    product_name = item.product.name
+                    item.delete()
+                    msg = f"محصول '{product_name}' به علت تمام شدن موجودی از سبد خرید شما حذف شد."
+                    messages.warning(self.request, msg)
+
+            for item in saved_items_query:
+                if item.product.is_active and item.product.stock > 0:
+                    if item.product.stock < item.quantity:
+                        item.quantity = item.product.stock
+                        item.save()
+                        msg = f"تعداد محصول '{item.product.name}' به علت کم بودن موجودی محصول در سبد خرید بعدی شما به '{item.quantity}' کاهش یافت. قبل از اتمام کامل موجودی خرید خود را تکمیل کنید."
+                        messages.warning(self.request, msg)
+                    cart_items_saved_for_later.append({
+                        'item': item,
+                        'product': item.product,
+                        'quantity': item.quantity,
+                    })
+                else:
+                    product_name = item.product.name
+                    item.delete()
+                    msg = f"محصول '{product_name}' به علت تمام شدن موجودی از سبد خرید بعدی شما حذف شد."
+                    messages.warning(self.request, msg)
+        else:
+            # Session cart
+            session_cart_data = get_session_cart(self.request.session)
+            session_cart = get_session_cart(self.request.session)
+            for product_id_str, details in session_cart_data.get('items', {}).items():
+                try:
+                    product = Product.objects.get(id=int(product_id_str), is_active=True)
+                    quantity = details.get('quantity', 1)
+                    if product.stock > 0:
+                        if product.stock < quantity:
+                            session_cart['items'][product_id_str].quantity = item.product.stock
+                            msg = f"تعداد محصول '{item.product.name}' به علت کم بودن موجودی محصول در سبد خرید شما به '{item.quantity}' کاهش یافت. قبل از اتمام کامل موجودی خرید خود را تکمیل کنید."
+                            messages.warning(self.request, msg)
+                        cart_items_active.append({
+                            'product': product,
+                            'quantity': session_cart['items'][product_id_str].get('quantity', 1),
+                        })
+                    else:
+                        if product_id_str in session_cart['items']:
+                            product_name = session_cart['items'][product_id_str].get('name', "انتخابی")
+                            del session_cart['items'][product_id_str]
+                        msg = f"محصول '{product_name}' به علت تمام شدن موجودی از سبد خرید شما حذف شد."
+                        messages.warning(self.request, msg)
+                except Product.DoesNotExist:
+                    if product_id_str in session_cart['items']:
+                        product_name = session_cart['items'][product_id_str].get('name', "انتخابی")
+                        del session_cart['items'][product_id_str]
+                    msg = f"محصول '{product_name}' به علت تمام شدن موجودی از سبد خرید شما حذف شد."
+                    messages.warning(self.request, msg)
+                    continue 
+            if session_cart != session_cart_data:
+                session_cart = calculate_session_cart_totals(session_cart)
+                save_session_cart(self.request.session, session_cart)
+        context['cart_items_active'] = cart_items_active
+        context['cart_items_saved_for_later'] = cart_items_saved_for_later
+        
         
         context['categories'] = Category.objects.filter(parent__isnull=True) # Top-level categories
         context['current_category'] = None
