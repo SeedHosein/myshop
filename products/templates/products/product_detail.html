@@ -1,61 +1,9 @@
 {% extends "base.html" %}
+{% load humanize %}
 {% load static %}
 {% load product_extras %}
 
-{% block title %}{{ product.name }} - جزئیات محصول | {{ SHOP_NAME }}{% endblock %}
-
-{% block extra_head %}
-<style>
-  .product-gallery-main-image {
-    max-width: 100%;
-    height: auto;
-    margin-bottom: 15px;
-    border-radius: 0.25rem;
-    border: 1px solid #dee2e6;
-  }
-  .product-gallery-thumbnails img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    margin-right: 10px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    border: 1px solid #dee2e6;
-    border-radius: 0.25rem;
-    transition: border-color 0.15s ease-in-out;
-  }
-  .product-gallery-thumbnails img.active-thumbnail {
-    border-color: #007bff;
-  }
-  .product-video-thumbnail {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    margin-right: 10px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    border: 1px solid #dee2e6;
-    border-radius: 0.25rem;
-    display: inline-block;
-    background-color: #f8f9fa;
-    text-align: center;
-    line-height: 80px; /* Vertically center icon */
-  }
-  .product-video-thumbnail i {
-    font-size: 2rem;
-    color: #007bff;
-  }
-  .nav-tabs .nav-link {
-      color: #495057;
-  }
-  .nav-tabs .nav-link.active {
-      color: #007bff;
-      border-color: #dee2e6 #dee2e6 #fff;
-  }
-</style>
-{% endblock %}
-
-{% block content %}
+{% block content0 %}
 <div class="container mt-5 product-detail-page">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -208,7 +156,7 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
+{% block extra_js0 %}
 <script>
 function changeMainImage(newImageUrl, thumbnailElement) {
     document.getElementById('main-product-image').src = newImageUrl;
@@ -259,4 +207,173 @@ function showVideoModal(videoUrl, videoTitle) {
     });
 }
 </script>
-{% endblock %} 
+{% endblock %}
+
+{% block title %}{{ product.name }} | {{ SHOP_NAME }}{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/product_detail_styles.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="container mx-auto px-4 py-8">
+    <!-- Breadcrumbs -->
+    <nav class="mb-6 text-sm text-gray-500" aria-label="Breadcrumb">
+        <ol class="list-none p-0 inline-flex">
+            <li class="flex items-center">
+                <a href="{% url 'core:home' %}" class="hover:text-primary-red">خانه</a>
+                <i class="fas fa-chevron-left mx-2"></i>
+            </li>
+            <li class="flex items-center">
+                <a href="{% url 'products:product_list' %}" class="hover:text-primary-red">محصولات</a>
+                <i class="fas fa-chevron-left mx-2"></i>
+            </li>
+            {% for cat in product.category.get_ancestors %}
+            <li class="flex items-center">
+                <a href="{{ cat.get_absolute_url }}" class="hover:text-primary-red">{{ cat.name }}</a>
+                <i class="fas fa-chevron-left mx-2"></i>
+            </li>
+            {% endfor %}
+            <li class="flex items-center">
+                <a href="{{ product.category.get_absolute_url }}" class="hover:text-primary-red">{{ product.category.name }}</a>
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Product Main Section -->
+    <div class="product-main-container">
+        <!-- Gallery -->
+        <div class="product-gallery">
+            <div class="main-image-container">
+                <img src="{{ product.get_main_image_url|default:'/static/images/placeholder.png' }}" alt="{{ product.name }}" id="main-product-image">
+                <iframe id="main-product-video" class="hidden" width="100%" height="100%" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+            <div class="thumbnail-strip">
+                {% if product.get_main_image %}
+                <div class="thumbnail-item active" data-type="image" data-src="{{ product.get_main_image_url }}">
+                    <img src="{{ product.get_main_image_url }}" alt="Thumbnail">
+                </div>
+                {% endif %}
+                {% for image in product.images.all %}
+                    {% if not image.is_main %}
+                    <div class="thumbnail-item" data-type="image" data-src="{{ image.image.url }}">
+                        <img src="{{ image.image.url }}" alt="{{ image.alt_text }}">
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                {% for video in product.videos.all %}
+                <div class="thumbnail-item video-thumb" data-type="video" data-src="{{ video.video_url|embed_youtube_url }}">
+                    <i class="fas fa-play"></i>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Product Info & Purchase -->
+        <div class="product-info">
+            <h1 class="text-3xl font-extrabold text-gray-800">{{ product.name }}</h1>
+            <p class="text-gray-600 my-4">{{ product.description_short }}</p>
+
+            <!-- Add to Cart Section -->
+            <div class="purchase-box">
+
+                <div class="price-box my-6">
+                    {% if product.discounted_price and product.discounted_price < product.price %}
+                        <span class="text-gray-500 text-lg text-decoration-line-through">{{ product.price|floatformat:0|intcomma }} تومان</span>
+                        <span class="text-primary-red font-bold text-3xl d-block">{{ product.discounted_price|floatformat:0|intcomma }} <span class="text-lg">تومان</span></span>
+                    {% else %}
+                        <span class="text-primary-red font-bold text-3xl">{{ product.price|floatformat:0|intcomma }} <span class="text-lg">تومان</span></span>
+                    {% endif %}
+                </div>
+
+                {% if product.is_active and product.stock > 0 %}
+                    <p class="text-green-600 font-semibold mb-4">موجود در انبار {{ SHOP_NAME }}</p>
+                    {% is_in_cart product.id request cart_items_active cart_items_saved_for_later as in_cart_quantity %}
+                    <div class="add-to-cart-container mt-4 w-full {% if in_cart_quantity.0 %}in-cart{% endif %}"
+                         data-product-id="{{ product.id }}" 
+                         data-product-stock="{{ product.stock }}"
+                         data-add-url="{% url 'cart_and_orders:add_to_cart' %}"
+                         {% if request.user.is_authenticated and in_cart_quantity.0 %}
+                            data-remove-url="{% url 'cart_and_orders:remove_from_cart' in_cart_quantity.1.item.id %}"
+                            data-update-url="{% url 'cart_and_orders:update_cart_item_quantity' in_cart_quantity.1.item.id %}"
+                         {% elif in_cart_quantity.0 %}
+                            data-remove-url="{% url 'cart_and_orders:remove_from_cart' product.id %}"
+                            data-update-url="{% url 'cart_and_orders:update_cart_item_quantity' product.id %}"
+                         {% else %}
+                             data-remove-url="{% url 'cart_and_orders:remove_from_cart' %}"
+                             data-update-url="{% url 'cart_and_orders:update_cart_item_quantity' %}"
+                         {% endif %}
+                             data-base-remove-url="{% url 'cart_and_orders:remove_from_cart' %}"
+                             data-base-update-url="{% url 'cart_and_orders:update_cart_item_quantity' %}">
+                        <button class="btn-add-to-cart">افزودن به سبد خرید</button>
+                        <div class="quantity-controller">
+                            <button class="quantity-btn plus">+</button>
+                            <span class="quantity-value">{{ in_cart_quantity.0|default:1 }}</span>
+                            <button class="quantity-btn minus">-</button>
+                            <button class="trash-btn"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="text-red-600 font-semibold mb-4">ناموجود</p>
+                    <button class="btn-primary w-full" disabled>افزودن به سبد خرید</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Details Tabs -->
+    <div class="product-details-tabs">
+        <div class="tabs-nav">
+            <button class="tab-link active" data-tab="review">نقد و بررسی</button>
+            <button class="tab-link" data-tab="specs">مشخصات فنی</button>
+            <button class="tab-link" data-tab="comments">نظرات کاربران</button>
+        </div>
+        <div class="tabs-content">
+            <!-- Review Tab -->
+            <div id="review" class="tab-panel active ck-content">
+                {{ product.description_long|safe }}
+            </div>
+            <!-- Specs Tab -->
+            <div id="specs" class="tab-panel">
+                <table class="specs-table">
+                    <tbody>
+                        {% for spec in product.specifications.all %}
+                        <tr>
+                            <td>{{ spec.key }}</td>
+                            <td>{{ spec.value }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <!-- Comments Tab -->
+            <div id="comments" class="tab-panel">
+                <h3 class="text-xl font-bold mb-4">نظرات کاربران</h3>
+                <div class="comments-list">
+                    <!-- Sample Comment -->
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <span class="font-bold">کاربر نمونه</span>
+                            <span class="text-sm text-gray-500">۱۴۰۳/۰۶/۰۹</span>
+                        </div>
+                        <p class="comment-body">این محصول فوق‌العاده است! کیفیت ساخت بالایی دارد و کاملاً از خریدم راضی هستم.</p>
+                    </div>
+                    <!-- End Sample Comment -->
+                </div>
+                <div class="add-comment-form">
+                    <h3 class="text-xl font-bold my-6">دیدگاه خود را بنویسید</h3>
+                    <form>
+                        <textarea class="form-textarea" rows="4" placeholder="نظر شما..."></textarea>
+                        <button type="submit" class="btn-primary mt-4">ارسال دیدگاه</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock content %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/product_detail.js' %}"></script>
+<script src="{% static 'js/cart_management.js' %}"></script>
+{% endblock extra_scripts %}

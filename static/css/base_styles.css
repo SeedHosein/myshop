@@ -923,6 +923,10 @@ a {
   display: inline-block;
 }
 
+.inline-flex {
+  display: inline-flex;
+}
+
 .flex {
   display: flex;
 }
@@ -992,7 +996,15 @@ a {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.list-none {
+  list-style: none;
+}
+
 /* Spacing */
+.p-0 {
+  padding: 0;
+}
+
 .p-4 {
   padding: 1rem;
 }
@@ -1096,12 +1108,21 @@ a {
   margin-bottom: 1rem;
 }
 
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
 .mb-8 {
   margin-bottom: 2rem;
 }
 
 .mt-20 {
   margin-top: 5rem;
+}
+
+.mx-2 {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
 }
 
 .mx-auto {
