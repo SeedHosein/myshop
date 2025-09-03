@@ -62,9 +62,13 @@ class ProductVariantInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug', 'category', 'price', 'stock', 'is_active', 'product_type', 'created_at')
-    list_filter = ('is_active', 'product_type', 'category', 'created_at')
-    search_fields = ('name', 'description_short', 'description_full')
+    list_display = (
+        'name', 'slug', 'category', 'price',
+        'stock', 'is_active', 'product_type',
+        'created_at',
+        )
+    list_filter = ('is_active', 'product_type', 'category', 'created_at', 'attribute_values')
+    search_fields = ('name', 'description_short', 'description_full', 'attribute_values')
     prepopulated_fields = {'slug': ('name',)}
     inlines = [ProductImageInline, ProductVideoInline, ProductVariantInline, HitCountInline]
     
@@ -77,18 +81,18 @@ class ProductAdmin(admin.ModelAdmin):
         ("توضیحات", {
             'fields': ('description_short', 'description_full')
         }),
+        ("ویژگی های محصول", {
+            'fields': ('attribute_values',) # Assuming 'attribute_values' is the M2M field name
+        }),
         ("قیمت و موجودی", {
             'fields': ('price', 'discounted_price', 'stock')
         }),
         ("نوع و وضعیت محصول", {
             'fields': ('is_active', 'product_type', 'downloadable_file')
         }),
-        # ("ویژگی های محصول", {
-        #     'fields': ('attribute_values',) # Assuming 'attribute_values' is the M2M field name
-        # }),
     )
     # If Product has M2M to ProductAttributeValue:
-    # filter_horizontal = ('attribute_values',) 
+    filter_horizontal = ('attribute_values',) 
 
 class ProductAttributeValueInline(admin.TabularInline):
     model = ProductAttributeValue
@@ -111,6 +115,7 @@ class ProductAttributeValueAdmin(admin.ModelAdmin):
 
 @admin.register(ProductVariant)
 class ProductVariantAdmin(admin.ModelAdmin):
+    form = ProductVariantForm
     list_display = ('sku', 'price_override', 'stock', 'is_active')
     list_filter = ('attribute_values', 'is_active')
     search_fields = ('attribute_values', 'sku')

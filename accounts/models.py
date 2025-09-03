@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager, Group, Permission
 from django.db import models
+from django.conf import settings
 # from django.utils.translation import gettext_lazy as _ # For translations
 
 class CustomUserManager(BaseUserManager):
@@ -109,4 +110,8 @@ class UserProfile(AbstractUser):
     
     @property
     def get_short_name(self):
-        return self.first_name
+        if self.first_name:
+            return self.first_name
+        elif self.last_name:
+            return self.last_name
+        return f'کاربر {settings.SHOP_NAME}'

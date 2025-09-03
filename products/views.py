@@ -12,8 +12,10 @@ from hitcount.utils import get_hitcount_model
 
 from cart_and_orders.views import calculate_session_cart_totals, get_session_cart, save_session_cart
 
+from reviews.forms import ReviewForm
 
 from .models import Product, Category, ProductImage, ProductVideo
+from reviews.models import ProductReview
 from cart_and_orders.models import Cart, CartItem
 
 
@@ -162,7 +164,11 @@ class ProductDetailView(HitCountDetailView):
         product = self.get_object()
         context['images'] = ProductImage.objects.filter(product=product)
         context['videos'] = ProductVideo.objects.filter(product=product)
-        # You can add related products or other context here later
+        
+        context['variants'] = product.variants.filter(is_active=True, stock__gt=0)
+        
+        context['reviews'] = ProductReview.objects.filter(product=product, status=ProductReview.STATUS_APPROVED)
+        context['form'] = ReviewForm()
         return context
 
 # For AJAX search

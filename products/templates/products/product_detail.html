@@ -1,213 +1,8 @@
 {% extends "base.html" %}
-{% load humanize %}
 {% load static %}
+{% load humanize %}
+{% load jalali_tags %}
 {% load product_extras %}
-
-{% block content0 %}
-<div class="container mt-5 product-detail-page">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'products:product_list' %}">محصولات</a></li>
-            {% for ancestor in product.category.get_ancestors %}
-                <li class="breadcrumb-item"><a href="{{ ancestor.get_absolute_url }}">{{ ancestor.name }}</a></li>
-            {% endfor %}
-            <li class="breadcrumb-item"><a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
-        </ol>
-    </nav>
-
-    <div class="row">
-        <div class="col-lg-6 mb-4">
-            <!-- Product Gallery -->
-            <div id="product-gallery">
-                {% with main_image=product.get_main_image %}
-                    <img id="main-product-image" src="{% if main_image %}{{ main_image.image.url }}{% else %}{% static 'images/placeholder.png' %}{% endif %}" 
-                         alt="{% if main_image %}{{ main_image.alt_text|default:product.name }}{% else %}{{ product.name }}{% endif %}" 
-                         class="product-gallery-main-image img-fluid">
-                {% endwith %}
-                
-                <div class="product-gallery-thumbnails d-flex flex-wrap mt-2">
-                    {% for image in product_images %}
-                        <img src="{{ image.image.url }}" 
-                             alt="{{ image.alt_text|default:"تصویر محصول" }} {{ forloop.counter }}" 
-                             class="img-thumbnail me-2 mb-2 {% if image.is_main %}active-thumbnail{% endif %}"
-                             style="width: 100px; height: 100px; object-fit: cover; cursor: pointer;"
-                             onclick="changeMainImage('{{ image.image.url }}', this)">
-                    {% endfor %}
-                    {% for video in product_videos %}
-                        <div class="product-video-thumbnail me-2 mb-2 d-flex align-items-center justify-content-center"
-                             style="width: 100px; height: 100px; cursor: pointer; border: 1px solid #ddd; background-color: #f8f9fa;"
-                             onclick="showVideoModal('{{ video.video_url }}', '{{ video.title|default:product.name }}')">
-                             <i class="fas fa-play-circle fa-2x text-primary"></i>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-6">
-            <h1>{{ product.name }}</h1>
-            <p class="text-muted">دسته‌بندی: <a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a></p>
-            
-            <div class="price-section my-3">
-                {% if product.discounted_price and product.discounted_price < product.price %}
-                    <h3 class="text-danger">
-                        <del class="text-muted me-2">{{ product.price|floatformat:0 }} تومان</del>
-                        {{ product.discounted_price|floatformat:0 }} تومان
-                        <span class="badge bg-success ms-2">تخفیف!</span>
-                    </h3>
-                {% else %}
-                    <h3>{{ product.price|floatformat:0 }} تومان</h3>
-                {% endif %}
-            </div>
-
-            <p class="lead">{{ product.description_short }}</p>
-
-            {% if product.stock > 0 %}
-                <p class="text-success"><i class="fas fa-check-circle me-1"></i> موجود در انبار ({{ product.stock }} عدد موجود است)</p>
-            {% else %}
-                <p class="text-danger"><i class="fas fa-times-circle me-1"></i> ناموجود</p>
-            {% endif %}
-
-            {% if product.is_active %}
-                <form method="POST" action="{% url 'cart_and_orders:add_to_cart' %}" class="add-to-cart-form my-3"> {# TODO: Update action to actual add to cart URL #}
-                    {% csrf_token %}
-                    <input type="hidden" name="product_id" value="{{ product.id }}">
-                    <div class="input-group" style="max-width: 200px;">
-                        <input type="number" name="quantity" value="1" min="1" {% if product.stock > 0 %}max="{{ product.stock }}"{% else %}max="0" disabled{% endif %} class="form-control text-center">
-                        <button type="submit" class="btn btn-primary" {% if product.stock <= 0 or not product.is_active %}disabled{% endif %}>
-                            <i class="fas fa-shopping-cart me-1"></i> افزودن به سبد خرید
-                        </button>
-                    </div>
-                </form>
-            {% else %}
-                 <p class="alert alert-warning">این محصول در حال حاضر موجود نیست.</p>
-            {% endif %}
-
-            {% if product.product_type == 'downloadable' and product.downloadable_file %}
-                <div class="alert alert-info mt-3">
-                    <i class="fas fa-download me-1"></i> این یک محصول دانلودی است.
-                    {# Link to download might appear after purchase #}
-                </div>
-            {% endif %}
-
-        </div>
-    </div>
-
-    <!-- Product Information Tabs: Full Description, Attributes, Reviews -->
-    <div class="row mt-5">
-        <div class="col-12">
-            <ul class="nav nav-tabs" id="productInfoTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab" aria-controls="description" aria-selected="true">توضیحات کامل</button>
-                </li>
-                {% if product_attributes %}
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="attributes-tab" data-bs-toggle="tab" data-bs-target="#attributes" type="button" role="tab" aria-controls="attributes" aria-selected="false">مشخصات</button>
-                </li>
-                {% endif %}
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab" aria-controls="reviews" aria-selected="false">نظرات کاربران</button>
-                </li>
-            </ul>
-            <div class="tab-content pt-3" id="productInfoTabsContent">
-                <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
-                    {{ product.description_full|safe|linebreaksbr }}
-                </div>
-                {% if product_attributes %}
-                <div class="tab-pane fade" id="attributes" role="tabpanel" aria-labelledby="attributes-tab">
-                    <table class="table table-striped">
-                        <tbody>
-                            {% for attr_val in product_attributes %}
-                            <tr>
-                                <th scope="row">{{ attr_val.attribute.display_name }}</th>
-                                <td>{{ attr_val.value }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% endif %}
-                <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
-                    <p>نظرات کاربران در اینجا نمایش داده خواهد شد.</p>
-                    {# TODO: Integrate product reviews display and form #}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Video Modal -->
-    <div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="videoModalLabel">ویدیو محصول</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="ratio ratio-16x9">
-                        <iframe id="productVideoIframe" src="" title="Product Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-</div>
-{% endblock %}
-
-{% block extra_js0 %}
-<script>
-function changeMainImage(newImageUrl, thumbnailElement) {
-    document.getElementById('main-product-image').src = newImageUrl;
-    // Optional: highlight active thumbnail
-    const thumbnails = document.querySelectorAll('.product-gallery-thumbnails img');
-    thumbnails.forEach(thumb => thumb.classList.remove('active-thumbnail'));
-    if (thumbnailElement) {
-        thumbnailElement.classList.add('active-thumbnail');
-    }
-}
-
-var videoModalInstance = null;
-document.addEventListener('DOMContentLoaded', function() {
-    if (document.getElementById('videoModal')) {
-        videoModalInstance = new bootstrap.Modal(document.getElementById('videoModal'));
-    }
-});
-
-function showVideoModal(videoUrl, videoTitle) {
-    const iframe = document.getElementById('productVideoIframe');
-    const modalTitle = document.getElementById('videoModalLabel');
-    
-    // Basic YouTube URL embedding (can be expanded for Vimeo etc.)
-    let embedUrl = videoUrl;
-    if (videoUrl.includes('youtube.com/watch?v=')) {
-        const videoId = videoUrl.split('v=')[1].split('&')[0];
-        embedUrl = `https://www.youtube.com/embed/${videoId}`;
-    } else if (videoUrl.includes('youtu.be/')) {
-        const videoId = videoUrl.split('youtu.be/')[1].split('?')[0];
-        embedUrl = `https://www.youtube.com/embed/${videoId}`;
-    }
-    // Add more parsers for other video platforms if needed
-    
-    iframe.src = embedUrl;
-    if (videoTitle) {
-        modalTitle.textContent = videoTitle;
-    } else {
-        modalTitle.textContent = "ویدیو محصول";
-    }
-    
-    if (videoModalInstance) {
-        videoModalInstance.show();
-    }
-
-    // Stop video when modal is closed
-    document.getElementById('videoModal').addEventListener('hidden.bs.modal', function () {
-        iframe.src = ''; // Clear src to stop video
-    });
-}
-</script>
-{% endblock %}
 
 {% block title %}{{ product.name }} | {{ SHOP_NAME }}{% endblock %}
 
@@ -216,9 +11,9 @@ function showVideoModal(videoUrl, videoTitle) {
 {% endblock %}
 
 {% block content %}
-<main class="container mx-auto px-4 py-8">
+<main class="container mx-auto px-4 pt-1 pb-8">
     <!-- Breadcrumbs -->
-    <nav class="mb-6 text-sm text-gray-500" aria-label="Breadcrumb">
+    <nav class="mb-1 text-sm text-gray-500" aria-label="Breadcrumb">
         <ol class="list-none p-0 inline-flex">
             <li class="flex items-center">
                 <a href="{% url 'core:home' %}" class="hover:text-primary-red">خانه</a>
@@ -228,7 +23,8 @@ function showVideoModal(videoUrl, videoTitle) {
                 <a href="{% url 'products:product_list' %}" class="hover:text-primary-red">محصولات</a>
                 <i class="fas fa-chevron-left mx-2"></i>
             </li>
-            {% for cat in product.category.get_ancestors %}
+            {% category_parents product.category as parents %}
+            {% for cat in parents %}
             <li class="flex items-center">
                 <a href="{{ cat.get_absolute_url }}" class="hover:text-primary-red">{{ cat.name }}</a>
                 <i class="fas fa-chevron-left mx-2"></i>
@@ -272,22 +68,50 @@ function showVideoModal(videoUrl, videoTitle) {
         <!-- Product Info & Purchase -->
         <div class="product-info">
             <h1 class="text-3xl font-extrabold text-gray-800">{{ product.name }}</h1>
+            
+            <!-- Average Rating Display -->
+            <div class="flex items-center my-4">
+                <div class="star-rating-display" data-rating="4.1">
+                    <div class="star-rating-display-filled"></div>
+                </div>
+                <span class="text-gray-600 mr-2">(میانگین ۴.۱ از ۵ | ۱۲۵ دیدگاه)</span>
+            </div>
+
             <p class="text-gray-600 my-4">{{ product.description_short }}</p>
 
-            <!-- Add to Cart Section -->
+            <!-- Price & Purchase Box -->
             <div class="purchase-box">
-
-                <div class="price-box my-6">
-                    {% if product.discounted_price and product.discounted_price < product.price %}
-                        <span class="text-gray-500 text-lg text-decoration-line-through">{{ product.price|floatformat:0|intcomma }} تومان</span>
-                        <span class="text-primary-red font-bold text-3xl d-block">{{ product.discounted_price|floatformat:0|intcomma }} <span class="text-lg">تومان</span></span>
-                    {% else %}
-                        <span class="text-primary-red font-bold text-3xl">{{ product.price|floatformat:0|intcomma }} <span class="text-lg">تومان</span></span>
-                    {% endif %}
+                {% if variants %}
+                <!-- Product Variants (e.g., Color) -->
+                <div class="variant-selection my-6">
+                    <h3 class="font-extrabold text-gray-800 mb-3" id="variant-name">{{ variants.0.get_variant_name }}</h3>
+                    <div class="variant-options">
+                        <div class="variant-option items-center variant-selected" data-variant-name="{{ variants.0.get_variant_name }}" data-variant-sku="{{ variants.0.sku }}" style="--variant-color: #e53935;">
+                            <p class="variant-text">{{ variants.0.get_attribute_values_value }}</p>
+                        </div>
+                        {% for variant in variants|slice:"1:" %}
+                        <div class="variant-option items-center" data-variant-name="{{ variant.get_variant_name }}" data-variant-sku="{{ variant.sku }}" style="--variant-color: #e53935;">
+                            <p class="variant-text">{{ variant.get_attribute_values_value }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
+                {% endif %}
 
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-gray-700 font-semibold">قیمت:</span>
+                     {% if product.discounted_price and product.discounted_price < product.price %}
+                        <div>
+                             <span class="text-gray-500 text-lg text-decoration-line-through">{{ product.price|floatformat:0|intcomma }} تومان</span>
+                             <span class="text-primary-red font-bold text-3xl d-block">{{ product.discounted_price|floatformat:0|intcomma }} <span class="text-lg">تومان</span></span>
+                        </div>
+                     {% else %}
+                         <span class="text-primary-red font-bold text-3xl">{{ product.price|floatformat:0|intcomma }} <span class="text-lg">تومان</span></span>
+                     {% endif %}
+                </div>
+                
                 {% if product.is_active and product.stock > 0 %}
-                    <p class="text-green-600 font-semibold mb-4">موجود در انبار {{ SHOP_NAME }}</p>
+                    <p class="text-green-600 font-semibold mb-4">موجود در انبار</p>
                     {% is_in_cart product.id request cart_items_active cart_items_saved_for_later as in_cart_quantity %}
                     <div class="add-to-cart-container mt-4 w-full {% if in_cart_quantity.0 %}in-cart{% endif %}"
                          data-product-id="{{ product.id }}" 
@@ -323,24 +147,27 @@ function showVideoModal(videoUrl, videoTitle) {
 
     <!-- Product Details Tabs -->
     <div class="product-details-tabs">
-        <div class="tabs-nav">
-            <button class="tab-link active" data-tab="review">نقد و بررسی</button>
-            <button class="tab-link" data-tab="specs">مشخصات فنی</button>
-            <button class="tab-link" data-tab="comments">نظرات کاربران</button>
+        <div class="tabs-nav-container">
+            <div class="tabs-nav" id="tabs-nav">
+                <button class="tab-link active" data-tab="review">نقد و بررسی</button>
+                <button class="tab-link" data-tab="specs">مشخصات فنی</button>
+                <button class="tab-link" data-tab="comments">نظرات کاربران</button>
+            </div>
         </div>
         <div class="tabs-content">
             <!-- Review Tab -->
             <div id="review" class="tab-panel active ck-content">
-                {{ product.description_long|safe }}
+                {{ product.description_full|safe|linebreaksbr }}
             </div>
             <!-- Specs Tab -->
+            {% comment %} TODO: Put two values ​​of an attribute in one table row. {% endcomment %}
             <div id="specs" class="tab-panel">
                 <table class="specs-table">
                     <tbody>
-                        {% for spec in product.specifications.all %}
+                        {% for attribute_value in product.attribute_values.all %}
                         <tr>
-                            <td>{{ spec.key }}</td>
-                            <td>{{ spec.value }}</td>
+                            <td>{{ attribute_value.attribute }}</td>
+                            <td>{{ attribute_value.value }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -349,21 +176,53 @@ function showVideoModal(videoUrl, videoTitle) {
             <!-- Comments Tab -->
             <div id="comments" class="tab-panel">
                 <h3 class="text-xl font-bold mb-4">نظرات کاربران</h3>
+                {% if reviews %}
                 <div class="comments-list">
-                    <!-- Sample Comment -->
+                    {% for comment in reviews %}
                     <div class="comment-item">
                         <div class="comment-header">
-                            <span class="font-bold">کاربر نمونه</span>
-                            <span class="text-sm text-gray-500">۱۴۰۳/۰۶/۰۹</span>
+                            <span class="font-bold">{{ comment.user.get_short_name }}</span>
+                            <div class="star-rating-display" data-rating="{{ comment.rating }}"><div class="star-rating-display-filled"></div></div>
                         </div>
-                        <p class="comment-body">این محصول فوق‌العاده است! کیفیت ساخت بالایی دارد و کاملاً از خریدم راضی هستم.</p>
+                        <p class="comment-body">{{ comment.comment }}</p>
+                        <span class="text-sm text-gray-500">{{ comment.created_at|to_jalali:"%Y/%m/%d" }}</span>
                     </div>
-                    <!-- End Sample Comment -->
+                    {% endfor %}
                 </div>
                 <div class="add-comment-form">
                     <h3 class="text-xl font-bold my-6">دیدگاه خود را بنویسید</h3>
-                    <form>
-                        <textarea class="form-textarea" rows="4" placeholder="نظر شما..."></textarea>
+                {% else %}
+                <div class="add-comment-form">
+                    <h4 class="text-lg my-6">هنوز برای این محصول نظری ثبت نشده. اولین نفری باشید که نظر میدهد:</h4>
+                {% endif %}
+                    <form method="post" action="{% url 'reviews:add_review' product.slug %}">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-group">
+                            <label class="font-semibold mb-2">امتیاز شما:</label>
+                            <div class="star-rating-input">
+                                <i class="fas fa-star" data-value="5"></i>
+                                <i class="fas fa-star" data-value="4"></i>
+                                <i class="fas fa-star selected" data-value="3"></i>
+                                <i class="fas fa-star selected" data-value="2"></i>
+                                <i class="fas fa-star selected" data-value="1"></i>
+                            </div>
+                            <input type="hidden" name="{{ form.rating.name }}" id="rating-value" value="3">
+                        </div>
+                        {% for error in form.rating.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                        <textarea name="{{ form.comment.name }}" class="form-textarea mt-4" rows="4" placeholder="نظر شما..."></textarea>
+                        {% for error in form.comment.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
                         <button type="submit" class="btn-primary mt-4">ارسال دیدگاه</button>
                     </form>
                 </div>
@@ -375,5 +234,4 @@ function showVideoModal(videoUrl, videoTitle) {
 
 {% block extra_scripts %}
 <script src="{% static 'js/product_detail.js' %}"></script>
-<script src="{% static 'js/cart_management.js' %}"></script>
 {% endblock extra_scripts %}

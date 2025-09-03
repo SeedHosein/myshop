@@ -59,7 +59,13 @@ def category_children(category, *args, current_category = None, **kwargs):
                 </div>
             </li>
         ''')
-        
+
+@register.simple_tag(name='category_parents')
+def category_parents(category, *args, parents=[], **kwargs):
+    if category.parent:
+        parents = category_parents(category.parent, parents=[category.parent, *parents])
+    return parents
+
 @register.simple_tag(name='is_in_cart')
 def is_in_cart(product_id, request, cart_items_active=[], cart_items_saved_for_later=[]):
     print(product_id)

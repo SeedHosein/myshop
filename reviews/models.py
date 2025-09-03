@@ -26,6 +26,14 @@ class ProductReview(models.Model):
         related_name='reviews',
         verbose_name="کاربر"
     )
+    safety_supervisor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE, # If user is deleted, their reviews are deleted
+        blank=True,
+        null=True,
+        related_name='reviews_Supervised',
+        verbose_name="ادمین ناظر"
+    )
     rating = models.PositiveSmallIntegerField(
         verbose_name="امتیاز (از 1 تا 5)",
         validators=[MinValueValidator(1), MaxValueValidator(5)],

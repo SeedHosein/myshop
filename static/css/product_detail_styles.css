@@ -69,24 +69,108 @@
     color: var(--gray-500);
 }
 
-/* --- Purchase Box & Price Styles --- */
-.price-box {
-    /* border-top: 1px solid #e5e7eb; */
-    border-bottom: 1px solid #e5e7eb;
-    padding: 1.5rem 0;
+/* --- Product Variants Styles --- */
+.variant-options {
+    display: flex;
+    gap: 0.75rem;
 }
+
+.variant-option {
+    position: relative;
+    cursor: pointer;
+    border-radius: 18px / 50%;
+    background-color: var(--gray-100);
+    border: 2px solid var(--white);
+    box-shadow: 0 0 0 1px #d1d5db;
+    transition: box-shadow 0.2s;
+}
+
+.variant-selected {
+    box-shadow: 0 0 3px 5px #4bd8ef;
+}
+
+.variant-text {
+    margin: 3px 8px;
+    text-align: center;
+    font-weight: 100;
+    color: var(--black);
+}
+
+/* --- Star Rating Styles --- */
+.star-rating-display {
+    display: inline-block;
+    font-size: 1.25rem;
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    position: relative;
+    color: #d1d5db; /* Unfilled stars color */
+}
+.star-rating-display::before {
+    content: "\f005\f005\f005\f005\f005"; /* 5 empty stars */
+    letter-spacing: 0.2rem;
+}
+.star-rating-display-filled {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 0; /* Default width */
+    color: #facc15; /* Filled stars color */
+    overflow: hidden;
+    white-space: nowrap;
+}
+.star-rating-display-filled::before {
+    content: "\f005\f005\f005\f005\f005"; /* 5 filled stars */
+    letter-spacing: 0.2rem;
+}
+
+.star-rating-input {
+    direction: ltr; /* Stars should be left-to-right */
+    display: inline-flex;
+    justify-content: flex-end; /* Align to the right */
+}
+.star-rating-input i {
+    font-size: 1.5rem;
+    color: #d1d5db;
+    cursor: pointer;
+    transition: color 0.2s;
+    padding: 0 0.2rem;
+}
+.star-rating-input i:hover,
+.star-rating-input i:hover ~ i,
+.star-rating-input i.selected,
+.star-rating-input i.selected ~ i {
+    color: #facc15;
+}
+
+
+/* --- Purchase Box & Price Styles --- */
 .purchase-box {
     background-color: #f8f9fa;
     border: 1px solid #e5e7eb;
     border-radius: 0.75rem;
     padding: 1.5rem;
-    margin-top: auto; /* Pushes the box to the bottom */
+    margin-top: auto;
 }
 .purchase-box .add-to-cart-container {
-    max-width: 300px;
+    max-width: 100%;
 }
 
-/* --- Product Details Tabs --- */
+/* --- Product Details Tabs (Sticky Logic) --- */
+.tabs-nav-container {
+    height: 57px; /* Match the height of the nav bar to prevent layout jump */
+}
+.tabs-nav.sticky {
+    position: fixed;
+    top: 80px; /* Adjust based on your header height */
+    width: 100%;
+    max-width: 1280px; /* Match container max-width */
+    z-index: 40;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,.05);
+    border-radius: 0 0 0.75rem 0.75rem;
+}
+
+/* --- Tab Content --- */
 .product-details-tabs {
     background-color: var(--white);
     border-radius: 0.75rem;
@@ -128,6 +212,7 @@
 }
 .tab-panel {
     display: none;
+    min-height: 300px; /* For scroll-spy to work properly */
 }
 .tab-panel.active {
     display: block;
@@ -166,6 +251,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.5rem;
+    flex-wrap: wrap;
 }
 .add-comment-form .form-textarea {
     width: 100%;
@@ -180,23 +266,8 @@
 .fa-play:before {
     content: "\f04b";
 }
-
-/* Add missing icon style if not present in base_styles.css */
-.fa-trash-alt:before {
-    content: "\f2ed";
-}
-
-/* --- Discount Badge --- */
-.discount-badge {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    background-color: var(--primary-red);
-    color: var(--white);
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border-radius: 0.375rem;
+.fa-star:before {
+    content: "\f005";
 }
 
 /* --- Add to Cart Button & Quantity Controller Styles --- */

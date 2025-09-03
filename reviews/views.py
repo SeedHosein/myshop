@@ -42,4 +42,8 @@ class AddReviewView(LoginRequiredMixin, View):
             messages.success(request, 'نظر شما ثبت شد. بعد از برسی پشتیبانی منتشر میشود.')
             return redirect(reverse('products:product_detail', kwargs={'slug': product_slug}))
 
-        return render(request, self.template_name, {'form': form, 'product': product})
+        messages.error(request, "خطای غیر منتظره ای رخ داد. لطفا چند دقیقه دیگر دوباره تلاش کنید.")
+        try:
+            return redirect(reverse('products:product_detail', kwargs={'slug': product_slug}))
+        except:
+            return redirect(reverse('products:product_list'))

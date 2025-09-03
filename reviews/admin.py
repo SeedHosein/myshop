@@ -8,15 +8,15 @@ class ProductReviewAdmin(admin.ModelAdmin):
     search_fields = ('comment', 'user__email', 'user__phone_number', 'user__first_name', 'user__last_name', 'product__name')
     list_editable = ('status',)
     actions = ['approve_reviews', 'reject_reviews', 'mark_pending']
-    readonly_fields = ('product', 'user', 'created_at') # Review content itself (rating, comment) should be editable by admin
+    readonly_fields = ('product', 'user', 'created_at', 'updated_at', ) # Review content itself (rating, comment) should be editable by admin
     list_per_page = 25
 
     fieldsets = (
         ("اطلاعات اصلی", {
-            'fields': ('product', 'user', 'rating', 'status', 'created_at')
+            'fields': ('product', 'user', 'status', 'safety_supervisor', 'created_at', 'updated_at')
         }),
-        ("متن نظر", {
-            'fields': ('comment',)
+        ("محتوای نظر", {
+            'fields': ('comment', 'rating',)
         }),
     )
 

@@ -47,6 +47,39 @@ class Category(models.Model, HitCountMixin):
         return reverse('products:category_detail', kwargs={'category_slug': self.slug})
 
 
+class ProductAttribute(models.Model):
+    name = models.CharField(max_length=100, unique=True, verbose_name="نام ویژگی (مثلا: رنگ، سایز)")
+    display_name = models.CharField(max_length=150, verbose_name="نام نمایشی ویژگی (برای کاربر)")
+
+    class Meta:
+        verbose_name = "ویژگی محصول"
+        verbose_name_plural = "ویژگی های محصول"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.display_name
+
+
+class ProductAttributeValue(models.Model):
+    attribute = models.ForeignKey(
+        ProductAttribute,
+        on_delete=models.CASCADE,
+        related_name='values',
+        verbose_name="نوع ویژگی"
+    )
+    value = models.CharField(max_length=100, verbose_name="مقدار ویژگی (مثلا: قرمز، XL)")
+    # You might add a 'slug' or 'code' here if needed for filtering or specific logic
+
+    class Meta:
+        verbose_name = "مقدار ویژگی محصول"
+        verbose_name_plural = "مقادیر ویژگی های محصول"
+        ordering = ['attribute__name', 'value']
+        unique_together = ('attribute', 'value') # Each value should be unique for a given attribute type
+
+    def __str__(self):
+        return f"{self.attribute.display_name}: {self.value}"
+
+
 class Product(models.Model, HitCountMixin):
     PHYSICAL = 'physical'
     DOWNLOADABLE = 'downloadable'
@@ -65,6 +98,7 @@ class Product(models.Model, HitCountMixin):
     )
     description_short = models.CharField(max_length=250, verbose_name="توضیحات کوتاه")
     description_full = CKEditor5Field(config_name="product", verbose_name="توضیحات کامل / نقد و بررسی")
+    attribute_values = models.ManyToManyField(ProductAttributeValue, blank=True, related_name='products', verbose_name="مشخصات فنی")
     price = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="قیمت (تومان)")
     discounted_price = models.DecimalField(
         max_digits=20,
@@ -183,39 +217,6 @@ class ProductVideo(models.Model):
         return f"ویدیو برای {self.product.name} - {self.title if self.title else self.video_url}"
 
 
-class ProductAttribute(models.Model):
-    name = models.CharField(max_length=100, unique=True, verbose_name="نام ویژگی (مثلا: رنگ، سایز)")
-    display_name = models.CharField(max_length=150, verbose_name="نام نمایشی ویژگی (برای کاربر)")
-
-    class Meta:
-        verbose_name = "ویژگی محصول"
-        verbose_name_plural = "ویژگی های محصول"
-        ordering = ['name']
-
-    def __str__(self):
-        return self.display_name
-
-
-class ProductAttributeValue(models.Model):
-    attribute = models.ForeignKey(
-        ProductAttribute,
-        on_delete=models.CASCADE,
-        related_name='values',
-        verbose_name="نوع ویژگی"
-    )
-    value = models.CharField(max_length=100, verbose_name="مقدار ویژگی (مثلا: قرمز، XL)")
-    # You might add a 'slug' or 'code' here if needed for filtering or specific logic
-
-    class Meta:
-        verbose_name = "مقدار ویژگی محصول"
-        verbose_name_plural = "مقادیر ویژگی های محصول"
-        ordering = ['attribute__name', 'value']
-        unique_together = ('attribute', 'value') # Each value should be unique for a given attribute type
-
-    def __str__(self):
-        return f"{self.attribute.display_name}: {self.value}"
-
-
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants', verbose_name="محصول اصلی")
     attribute_values = models.ManyToManyField(ProductAttributeValue, related_name='variants', verbose_name="مقادیر ویژگی")
@@ -235,6 +236,20 @@ class ProductVariant(models.Model):
             return f"{self.product.name}-(None)"
         values = ",".join([f"{val.attribute.name}:{val.value}" for val in self.attribute_values.all()])
         return f"{self.product.name}-({values if values else "None"})"
+    
+    @property
+    def get_attribute_values_value(self):
+        if self.is_deleted:
+            return f"None"
+        values = " ".join([f"{val.value}" for val in self.attribute_values.all()]) if self.pk else ""
+        return f"{values if values else f"None{self.ri}"}"
+    
+    @property
+    def get_variant_name(self):
+        if self.is_deleted:
+            return f"None"
+        values = " ".join([f"{val.attribute.name}:{val.value}" for val in self.attribute_values.all()]) if self.pk else ""
+        return f"{values if values else f"None{self.ri}"}"
     
     @property
     def product_variant_name(self):

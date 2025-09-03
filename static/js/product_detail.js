@@ -6,11 +6,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     thumbnails.forEach(thumb => {
         thumb.addEventListener('click', function() {
-            // Remove active class from all thumbnails
             thumbnails.forEach(t => t.classList.remove('active'));
-            // Add active class to the clicked one
             this.classList.add('active');
-
             const type = this.dataset.type;
             const src = this.dataset.src;
 
@@ -26,6 +23,57 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
+
+    // --- Star Rating Display & Input ---
+    // Display average rating
+    document.querySelectorAll('.star-rating-display').forEach(starDisplay => {
+        const rating = parseFloat(starDisplay.dataset.rating);
+        const percentage = (rating / 5) * 100;
+        starDisplay.querySelector('.star-rating-display-filled').style.width = `${percentage+(percentage/100)}%`;
+    });
+
+    // Handle star rating input
+    const starRatingInput = document.querySelector('.star-rating-input');
+    if (starRatingInput) {
+        const stars = starRatingInput.querySelectorAll('i');
+        const ratingValueInput = document.getElementById('rating-value');
+
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const ratingValue = this.dataset.value;
+                ratingValueInput.value = ratingValue;
+                stars.forEach(s => {
+                    s.classList.toggle('selected', s.dataset.value <= ratingValue);
+                });
+            });
+            star.addEventListener('mouseover', function() {
+                stars.forEach(s => {
+                    s.style.color = s.dataset.value <= this.dataset.value ? '#facc15' : '#d1d5db';
+                });
+            });
+        });
+        starRatingInput.addEventListener('mouseout', function() {
+            const currentRating = ratingValueInput.value;
+            stars.forEach(s => {
+                s.style.color = s.dataset.value <= currentRating ? '#facc15' : '#d1d5db';
+            });
+        });
+    }
+
+
+    const variant_options = document.querySelectorAll('.variant-option');
+    const variant_name = document.getElementById('variant-name');
+
+    variant_options.forEach(variant_option => {
+        variant_option.addEventListener('click', function() {
+            variant_options.forEach(vo => vo.classList.remove('variant-selected'));
+            if (variant_name && variant_option.dataset.variantName) {
+                variant_name.textContent = variant_option.dataset.variantName;
+            };
+            variant_option.classList.add('variant-selected');
+        });
+    });
+
 
     // --- Product Details Tabs Logic ---
     const tabLinks = document.querySelectorAll('.tab-link');
