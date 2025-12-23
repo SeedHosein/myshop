@@ -69,7 +69,6 @@
         <div class="product-info">
             <h1 class="text-3xl font-extrabold text-gray-800">{{ product.name }}</h1>
             
-            <!-- Average Rating Display -->
             <div class="flex items-center my-4">
                 <div class="star-rating-display" data-rating="4.1">
                     <div class="star-rating-display-filled"></div>
@@ -79,18 +78,16 @@
 
             <p class="text-gray-600 my-4">{{ product.description_short }}</p>
 
-            <!-- Price & Purchase Box -->
             <div class="purchase-box">
                 {% if variants %}
-                <!-- Product Variants (e.g., Color) -->
                 <div class="variant-selection my-6">
                     <h3 class="font-extrabold text-gray-800 mb-3" id="variant-name">{{ variants.0.get_variant_name }}</h3>
                     <div class="variant-options">
-                        <div class="variant-option items-center variant-selected" data-variant-name="{{ variants.0.get_variant_name }}" data-variant-sku="{{ variants.0.sku }}" style="--variant-color: #e53935;">
+                        <div class="variant-option items-center variant-selected" data-variant-name="{{ variants.0.get_variant_name }}" data-variant-id="{{ variants.0.id }}" data-variant-sku="{{ variants.0.sku }}" style="--variant-color: #e53935;">
                             <p class="variant-text">{{ variants.0.get_attribute_values_value }}</p>
                         </div>
                         {% for variant in variants|slice:"1:" %}
-                        <div class="variant-option items-center" data-variant-name="{{ variant.get_variant_name }}" data-variant-sku="{{ variant.sku }}" style="--variant-color: #e53935;">
+                        <div class="variant-option items-center" data-variant-name="{{ variant.get_variant_name }}" data-variant-id="{{ variant.id }}" data-variant-sku="{{ variant.sku }}" style="--variant-color: #e53935;">
                             <p class="variant-text">{{ variant.get_attribute_values_value }}</p>
                         </div>
                         {% endfor %}
@@ -112,31 +109,17 @@
                 
                 {% if product.is_active and product.stock > 0 %}
                     <p class="text-green-600 font-semibold mb-4">موجود در انبار</p>
-                    {% is_in_cart product.id request cart_items_active cart_items_saved_for_later as in_cart_quantity %}
-                    <div class="add-to-cart-container mt-4 w-full {% if in_cart_quantity.0 %}in-cart{% endif %}"
-                         data-product-id="{{ product.id }}" 
-                         data-product-stock="{{ product.stock }}"
-                         data-add-url="{% url 'cart_and_orders:add_to_cart' %}"
-                         {% if request.user.is_authenticated and in_cart_quantity.0 %}
-                            data-remove-url="{% url 'cart_and_orders:remove_from_cart' in_cart_quantity.1.item.id %}"
-                            data-update-url="{% url 'cart_and_orders:update_cart_item_quantity' in_cart_quantity.1.item.id %}"
-                         {% elif in_cart_quantity.0 %}
-                            data-remove-url="{% url 'cart_and_orders:remove_from_cart' product.id %}"
-                            data-update-url="{% url 'cart_and_orders:update_cart_item_quantity' product.id %}"
-                         {% else %}
-                             data-remove-url="{% url 'cart_and_orders:remove_from_cart' %}"
-                             data-update-url="{% url 'cart_and_orders:update_cart_item_quantity' %}"
-                         {% endif %}
-                             data-base-remove-url="{% url 'cart_and_orders:remove_from_cart' %}"
-                             data-base-update-url="{% url 'cart_and_orders:update_cart_item_quantity' %}">
-                        <button class="btn-add-to-cart">افزودن به سبد خرید</button>
-                        <div class="quantity-controller">
-                            <button class="quantity-btn plus">+</button>
-                            <span class="quantity-value">{{ in_cart_quantity.0|default:1 }}</span>
-                            <button class="quantity-btn minus">-</button>
-                            <button class="trash-btn"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    </div>
+                    <form method="POST" action="{% url 'cart_and_orders:add_to_cart' %}" class="w-full add-to-cart-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                        {% if variants %}
+                        <input type="hidden" name="variant_id" value="{{ variants.0.id }}" id="selected-variant-id">
+                        {% endif %}
+                        <input type="hidden" name="quantity" value="1" min="1">
+                        <button type="submit" class="w-full mt-6 btn-primary">
+                            افزودن به سبد خرید
+                        </button>
+                    </form>
                 {% else %}
                     <p class="text-red-600 font-semibold mb-4">ناموجود</p>
                     <button class="btn-primary w-full" disabled>افزودن به سبد خرید</button>
@@ -155,12 +138,9 @@
             </div>
         </div>
         <div class="tabs-content">
-            <!-- Review Tab -->
             <div id="review" class="tab-panel active ck-content">
                 {{ product.description_full|safe|linebreaksbr }}
             </div>
-            <!-- Specs Tab -->
-            {% comment %} TODO: Put two values ​​of an attribute in one table row. {% endcomment %}
             <div id="specs" class="tab-panel">
                 <table class="specs-table">
                     <tbody>
@@ -173,59 +153,9 @@
                     </tbody>
                 </table>
             </div>
-            <!-- Comments Tab -->
             <div id="comments" class="tab-panel">
-                <h3 class="text-xl font-bold mb-4">نظرات کاربران</h3>
-                {% if reviews %}
-                <div class="comments-list">
-                    {% for comment in reviews %}
-                    <div class="comment-item">
-                        <div class="comment-header">
-                            <span class="font-bold">{{ comment.user.get_short_name }}</span>
-                            <div class="star-rating-display" data-rating="{{ comment.rating }}"><div class="star-rating-display-filled"></div></div>
-                        </div>
-                        <p class="comment-body">{{ comment.comment }}</p>
-                        <span class="text-sm text-gray-500">{{ comment.created_at|to_jalali:"%Y/%m/%d" }}</span>
-                    </div>
-                    {% endfor %}
-                </div>
-                <div class="add-comment-form">
-                    <h3 class="text-xl font-bold my-6">دیدگاه خود را بنویسید</h3>
-                {% else %}
-                <div class="add-comment-form">
-                    <h4 class="text-lg my-6">هنوز برای این محصول نظری ثبت نشده. اولین نفری باشید که نظر میدهد:</h4>
-                {% endif %}
-                    <form method="post" action="{% url 'reviews:add_review' product.slug %}">
-                        {% csrf_token %}
-
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {% for error in form.non_field_errors %}
-                                    <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        <div class="form-group">
-                            <label class="font-semibold mb-2">امتیاز شما:</label>
-                            <div class="star-rating-input">
-                                <i class="fas fa-star" data-value="5"></i>
-                                <i class="fas fa-star" data-value="4"></i>
-                                <i class="fas fa-star selected" data-value="3"></i>
-                                <i class="fas fa-star selected" data-value="2"></i>
-                                <i class="fas fa-star selected" data-value="1"></i>
-                            </div>
-                            <input type="hidden" name="{{ form.rating.name }}" id="rating-value" value="3">
-                        </div>
-                        {% for error in form.rating.errors %}
-                            <div class="invalid-feedback d-block">{{ error }}</div>
-                        {% endfor %}
-                        <textarea name="{{ form.comment.name }}" class="form-textarea mt-4" rows="4" placeholder="نظر شما..."></textarea>
-                        {% for error in form.comment.errors %}
-                            <div class="invalid-feedback d-block">{{ error }}</div>
-                        {% endfor %}
-                        <button type="submit" class="btn-primary mt-4">ارسال دیدگاه</button>
-                    </form>
-                </div>
+                 <h3 class="text-xl font-bold mb-4">نظرات کاربران</h3>
+                {% include 'reviews/add_review_form.html' with product=product form=review_form %}
             </div>
         </div>
     </div>

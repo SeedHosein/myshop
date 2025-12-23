@@ -68,7 +68,6 @@ def category_parents(category, *args, parents=[], **kwargs):
 
 @register.simple_tag(name='is_in_cart')
 def is_in_cart(product_id, request, cart_items_active=[], cart_items_saved_for_later=[]):
-    print(product_id)
     for cart_item_info in cart_items_active + cart_items_saved_for_later:
         if cart_item_info['product'].id == product_id:
             return (str(cart_item_info.get('quantity', 1)), cart_item_info)
