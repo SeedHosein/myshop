@@ -1035,6 +1035,10 @@ a {
   padding: 1.5rem;
 }
 
+.p-8 {
+  padding: 2rem;
+}
+
 .py-2 {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
@@ -1367,6 +1371,10 @@ a {
   background-color: var(--white);
 }
 
+.bg-gray-50 {
+  background-color: #F8FAFC;
+}
+
 .bg-gray-700 {
   background-color: #343a40;
 }
@@ -1398,6 +1406,10 @@ a {
 
 .border-t {
   border-top-width: 1px;
+}
+
+.border-gray-100 {
+  border-color: var(--gray-100);
 }
 
 .border-gray-600 {

@@ -1,19 +1,18 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager, Group, Permission
 from django.db import models
 from django.conf import settings
-# from django.utils.translation import gettext_lazy as _ # For translations
 
 class CustomUserManager(BaseUserManager):
     """
-    مدیر مدل کاربر سفارشی که در آن ایمیل یا شماره تلفن شناسه منحصر به فرد
-    برای احراز هویت به جای نام کاربری است.
+    Custom user model manager where email or phone number is the unique identifier for 
+    authentication instead of username.
     """
     def create_user(self, email=None, phone_number=None, password=None, **extra_fields):
         """
-        ایجاد و ذخیره یک کاربر با ایمیل یا شماره تلفن و رمز عبور داده شده.
+        Create and save a user with the given email or phone number and password.
         """
         if not email and not phone_number:
-            raise ValueError('ایمیل یا شماره تلفن باید تنظیم شود')
+            raise ValueError('ایمیل یا شماره تلفن باید وارد شود.')
 
         if email:
             email = self.normalize_email(email)
@@ -29,7 +28,7 @@ class CustomUserManager(BaseUserManager):
 
     def create_superuser(self, email=None, phone_number=None, password=None, **extra_fields):
         """
-        ایجاد و ذخیره یک SuperUser با ایمیل یا شماره تلفن و رمز عبور داده شده.
+        Create and save a SuperUser with the given email or phone number and password.
         """
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
@@ -91,7 +90,7 @@ class UserProfile(AbstractUser):
     
     def save(self, **kwargs):
         if not self.email and not self.phone_number:
-            raise ValueError('ایمیل یا شماره تلفن باید تنظیم شود')
+            raise ValueError('Email or phone number must be set.')
         return super().save(**kwargs)
 
     class Meta:
@@ -101,9 +100,8 @@ class UserProfile(AbstractUser):
     def __str__(self):
         if self.phone_number:
             return self.phone_number
-        return self.email # Or f'{self.first_name} {self.last_name}' if they are reliably present
+        return self.email
 
-    # You can add methods here for getting full name, short name, etc.
     @property
     def get_full_name(self):
         return f'{self.first_name} {self.last_name}'.strip()

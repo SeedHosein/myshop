@@ -25,17 +25,29 @@ class UserRegisterView(SuccessMessageMixin, CreateView):
     model = UserProfile
     form_class = UserRegistrationForm
     template_name = 'accounts/register.html'
-    success_url = reverse_lazy('accounts:profile') # Redirect to profile page after registration
+    success_url = reverse_lazy('core:home') # Redirect to home page after registration
     success_message = "ثبت نام شما با موفقیت انجام شد. خوش آمدید!"
+    
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect(reverse_lazy('accounts:profile'))
+        return super().dispatch(request, *args, **kwargs)
+    
 
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
+        print(form.cleaned_data["username"])
+        
         response = super().form_valid(form)
         # Log the user in after successful registration
         user = self.object # The new user object
         login(self.request, user, backend='accounts.backends.EmailOrPhoneBackend') # Automatically log in the user
         return response
+    
+    def form_invalid(self, form):
+        
+        return super().form_invalid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -47,6 +59,12 @@ class UserLoginView(AuthLoginView):
     template_name = 'accounts/login.html'
     # LOGIN_REDIRECT_URL will be used from settings.py by default
     # Or you can set success_url here: success_url = reverse_lazy('some_page')
+    
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect(reverse_lazy('accounts:profile'))
+        return super().dispatch(request, *args, **kwargs)
+    
     # Add a message for failed login
     def form_invalid(self, form):
         messages.error(self.request, "نام کاربری (ایمیل/تلفن) یا رمز عبور اشتباه است. لطفا دوباره تلاش کنید.")
@@ -59,8 +77,9 @@ class UserLoginView(AuthLoginView):
 
 class UserLogoutView(AuthLogoutView):
     # LOGOUT_REDIRECT_URL will be used from settings.py by default
-    # Or you can set next_page here: next_page = reverse_lazy('home') # Assuming you have a 'home' url pattern
-    template_name = 'accounts/logout.html' # Optional: a page confirming logout
+    # Or you can set next_page here: 
+    next_page = reverse_lazy('core:home') # Assuming you have a 'home' url pattern
+    # template_name = 'accounts/logout.html' # Optional: a page confirming logout
 
     def dispatch(self, request, *args, **kwargs):
         response = super().dispatch(request, *args, **kwargs)
@@ -130,7 +149,7 @@ class UserPasswordChangeDoneView(LoginRequiredMixin, AuthPasswordChangeDoneView)
     template_name = 'accounts/password_change_done.html'
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # messages.success(self.request, "رمز عبور شما با موفقیت تغییر کرد.") # Message is now in PasswordChangeView
+        messages.success(self.request, "رمز عبور شما با موفقیت تغییر کرد.") # Message is now in PasswordChangeView
         context['SHOP_NAME'] = settings.SHOP_NAME
         return context
 

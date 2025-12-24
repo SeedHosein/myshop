@@ -6,14 +6,12 @@ from django.core.exceptions import ValidationError
 from .models import UserProfile
 
 class UserRegistrationForm(forms.ModelForm):
-    email = forms.EmailField(
-        label="آدرس ایمیل",
-        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': "مثال: user@example.com"})
+    username = forms.CharField(
+        label="آدرس ایمیل یا شماره موبایل",
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': "مثال: user@example.com یا 09123456789"})
     )
-    phone_number = forms.CharField(
-        label="شماره تلفن همراه",
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "مثال: 09123456789"})
-    )
+    first_name = forms.CharField(label="نام", required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    last_name = forms.CharField(label="نام خانوادگی", required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     password = forms.CharField(
         label="رمز عبور",
         widget=forms.PasswordInput(attrs={'class': 'form-control'}),
@@ -23,14 +21,13 @@ class UserRegistrationForm(forms.ModelForm):
         label="تکرار رمز عبور",
         widget=forms.PasswordInput(attrs={'class': 'form-control'})
     )
-    first_name = forms.CharField(label="نام", required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    last_name = forms.CharField(label="نام خانوادگی", required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = UserProfile
-        fields = ('email', 'phone_number', 'first_name', 'last_name')
+        fields = ('username', 'first_name', 'last_name')
         # Add Persian labels for model fields if not using custom form fields for them
         labels = {
+            'username': "آدرس ایمیل یا شماره موبایل",
             'first_name': "نام",
             'last_name': "نام خانوادگی",
         }
@@ -58,6 +55,10 @@ class UserRegistrationForm(forms.ModelForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
+        if self.cleaned_data["username"].isnumeric():
+            pass
+        
+        
         user.set_password(self.cleaned_data["password"])
         if commit:
             user.save()
