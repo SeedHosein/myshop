@@ -1,0 +1,107 @@
+{% extends "accounts/base_accounts.html" %}
+{% load static %}
+
+{% block title %}تایید کد ورود{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/login_styles.css' %}">
+{% endblock extra_head %}
+
+{% block content %}
+<div class="mx-auto px-4 flex justify-center">
+    <div class="auth-login bg-white w-full max-w-md p-8 rounded-2xl shadow-lg border border-gray-100 text-center">
+        <h2>تایید کد ورود</h2>
+        <p class="text-gray-600 mt-2 text-sm">
+            کد ۶ رقمی ارسال شده به <strong>{{ input_type|capfirst }}</strong> شما را وارد کنید:
+            <br>
+            <strong dir="ltr">{{ username }}</strong>
+        </p>
+
+        <form method="post" id="otp-form" novalidate>
+            {% csrf_token %}
+
+            <div class="otp-container" dir="ltr">
+                {% for i in "123456" %}
+                <input
+                    type="text"
+                    name="otp_{{ forloop.counter }}"
+                    class="otp-input"
+                    maxlength="1"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    autocomplete="off"
+                    required
+                >
+                {% endfor %}
+            </div>
+
+            <p class="countdown-text">
+                زمان باقی‌مانده: <span id="countdown">02:00</span>
+            </p>
+
+            <button type="submit" class="btn mt-4">تایید کد</button>
+        </form>
+
+        <button
+            type="button"
+            id="resend-btn"
+            class="resend-btn"
+            onclick="window.location.href='{% url 'accounts:register' %}'"
+            disabled
+        >
+            بازگشت به ثبت‌نام
+        </button>
+
+        <p class="text-sm text-gray-500 mt-6">
+            کد را دریافت نکردید؟ بعد از اتمام زمان می‌توانید دوباره تلاش کنید.
+        </p>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_scripts %}
+<script>
+    // 120 second countdown
+    let timeLeft = {{ time_lose_code }};
+    const countdownElement = document.getElementById('countdown');
+    const resendBtn = document.getElementById('resend-btn');
+
+    const timer = setInterval(() => {
+        timeLeft--;
+        const minutes = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+        const seconds = String(timeLeft % 60).padStart(2, '0');
+        countdownElement.textContent = `${minutes}:${seconds}`;
+
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            countdownElement.textContent = "00:00";
+            resendBtn.disabled = false;
+            resendBtn.classList.add('enabled');
+            resendBtn.textContent = "بازگشت به ثبت‌نام";
+        }
+    }, 1000);
+
+    // Autofocus to next input
+    const inputs = document.querySelectorAll('.otp-input');
+
+    inputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            // Just accept the number.
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+
+            if (e.target.value && index < inputs.length - 1) {
+                inputs[index + 1].focus();
+            }
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                inputs[index - 1].focus();
+            }
+        });
+
+        // Initial focus on the first input
+        if (index === 0) input.focus();
+    });
+</script>
+{% endblock extra_scripts %}

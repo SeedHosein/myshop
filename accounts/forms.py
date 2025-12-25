@@ -32,18 +32,6 @@ class UserRegistrationForm(forms.ModelForm):
             'last_name': "نام خانوادگی",
         }
 
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if UserProfile.objects.filter(email__iexact=email).exists():
-            raise ValidationError("کاربری با این ایمیل قبلا ثبت نام کرده است.")
-        return email
-
-    def clean_phone_number(self):
-        phone_number = self.cleaned_data.get('phone_number')
-        if UserProfile.objects.filter(phone_number=phone_number).exists():
-            raise ValidationError("کاربری با این شماره تلفن قبلا ثبت نام کرده است.")
-        return phone_number
-
     def clean_password_confirm(self):
         password = self.cleaned_data.get("password")
         password_confirm = self.cleaned_data.get("password_confirm")
@@ -55,10 +43,6 @@ class UserRegistrationForm(forms.ModelForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        if self.cleaned_data["username"].isnumeric():
-            pass
-        
-        
         user.set_password(self.cleaned_data["password"])
         if commit:
             user.save()

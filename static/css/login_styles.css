@@ -44,3 +44,56 @@
     transition: all 0.2s;
     white-space: nowrap;
 }
+
+.otp-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.otp-input {
+    width: 50px;
+    height: 60px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    background-color: #f9fafb;
+    transition: all 0.2s;
+}
+
+.otp-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.countdown-text {
+    color: #6b7280;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.resend-btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #e5e7eb;
+    color: #9ca3af;
+    border: none;
+    border-radius: 8px;
+    cursor: not-allowed;
+    transition: all 0.3s;
+}
+
+.resend-btn.enabled {
+    background-color: #3b82f6;
+    color: white;
+    cursor: pointer;
+}
+
+.resend-btn.enabled:hover {
+    background-color: #2563eb;
+}

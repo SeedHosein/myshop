@@ -54,7 +54,7 @@ Follow these steps to get the project running locally.
 
 ### 1. Prerequisites
 
-*   Python 3.8+
+*   Python 3.12+
 *   `venv` (or another virtual environment tool)
 
 ### 2. Clone the Repository
@@ -92,7 +92,84 @@ Install all the required packages from `requirements.txt`.
 pip install -r requirements.txt
 ```
 
-### 5. Run Database Migrations
+### 5. Install and run redis for caches (or set your redis server address to `.env` file)
+
+**On macOS:**
+
+```bash
+# Install Redis using Homebrew (recommended)
+brew install redis
+
+# Start Redis server in the background
+brew services start redis
+
+# Or run it in the foreground (for testing)
+redis-server
+
+# Test connection
+redis-cli ping
+# Should return: PONG
+```
+
+**On Linux (Ubuntu/Debian):**
+
+```bash
+# Update package list
+sudo apt update
+
+# Install Redis
+sudo apt install redis-server
+
+# Start Redis service
+sudo systemctl start redis
+
+# Enable Redis to start on boot
+sudo systemctl enable redis
+
+# Test connection
+redis-cli ping
+# Should return: PONG
+```
+
+**On Linux (CentOS/RHEL/Fedora):**
+
+```bash
+# Install Redis
+sudo dnf install redis  # Fedora
+# or
+sudo yum install redis  # CentOS/RHEL
+
+# Start and enable Redis
+sudo systemctl start redis
+sudo systemctl enable redis
+
+# Test connection
+redis-cli ping
+```
+
+**On Windows:**
+
+```bash
+# Option 1: Use Windows Subsystem for Linux (WSL) - Recommended
+# Install Ubuntu from Microsoft Store, then follow Linux instructions above.
+
+# Option 2: Official Redis for Windows (maintained by Microsoft - latest stable)
+# Download from: https://github.com/microsoftarchive/redis/releases
+# Choose the latest .msi installer (e.g., Redis-x64-3.2.100.msi)
+
+# Or use the zip version:
+# 1. Download zip from the link above
+# 2. Extract to a folder (e.g., C:\redis)
+# 3. Open Command Prompt as Administrator in that folder
+# 4. Run:
+redis-server.exe
+
+# To run as a Windows service (optional):
+redis-server.exe --service-install
+redis-server.exe --service-start
+```
+
+### 6. Run Database Migrations
 
 Apply the database migrations to create the necessary tables.
 
@@ -100,7 +177,7 @@ Apply the database migrations to create the necessary tables.
 python manage.py migrate
 ```
 
-### 6. Running the Project
+### 7. Running the Project
 
 Once the setup is complete, you can run the Django development server.
 

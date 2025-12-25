@@ -91,6 +91,12 @@ class UserProfile(AbstractUser):
     def save(self, **kwargs):
         if not self.email and not self.phone_number:
             raise ValueError('Email or phone number must be set.')
+        if self.phone_number:
+            if self.phone_number[:-9] in ['09', '989']:
+                self.phone_number = "+989" + self.phone_number[:-9]
+            if len(self.phone_number) != 13 and self.phone_number[:-9] != "+989":
+                raise ValueError('Mobile number is invalid.')
+                
         return super().save(**kwargs)
 
     class Meta:
