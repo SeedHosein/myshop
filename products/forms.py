@@ -65,11 +65,15 @@ class ProductVariantForm(forms.ModelForm):
         if not sku:
             if attribute_values:
                 # ...generate the smart SKU from the selected attributes.
-                product_name = self.instance.product.name
-                values_str = ",".join([f"{v.attribute.name}:{v.value}" for v in attribute_values])
-                new_sku = f"{product_name}-({values_str})"
-                # Put the newly generated SKU back into the cleaned_data to be saved.
-                self.cleaned_data['sku'] = new_sku.replace(' ', '-')
+                product = self.instance.product if self.instance.pk else self.cleaned_data.get('product')
+                if product:
+                    product_name = product.name
+                    values_str = ",".join([f"{v.attribute.name}:{v.value}" for v in attribute_values])
+                    new_sku = f"{product_name}-({values_str})"
+                    # Put the newly generated SKU back into the cleaned_data to be saved.
+                    self.cleaned_data['sku'] = new_sku.replace(' ', '-')
+                else:
+                    raise ValidationError("محصول والد برای ایجاد SKU اتوماتیک یافت نشد.")
             else:
                 # If SKU is empty and there are no attributes, raise an error or set a default.
                 # Here, we prevent saving without an SKU if no attributes are selected.
