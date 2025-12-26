@@ -41,6 +41,13 @@ class HomePageView(TemplateView):
         popular_category = categorys.order_by('-hit_count_generic__hits')[:5]
         context['popular_category'] = popular_category
         
+        # # test for messages
+        # from django.contrib import messages
+        # messages.error(self.request, "this test message error")
+        # messages.success(self.request, "this test message success")
+        # messages.warning(self.request, "this test message warning")
+        # messages.info(self.request, "this test message info")
+        
         return context
 
 

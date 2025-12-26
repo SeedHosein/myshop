@@ -86,7 +86,12 @@
                 <a href="{% url 'products:product_list' %}" class="nav-link">محصولات</a>
                 <a href="javascript:void(0);" class="nav-link">تخفیف‌های ویژه</a>
                 <a href="{% url 'blog:post_list' %}" class="nav-link">وبلاگ</a>
-                <a href="javascript:void(0);" class="nav-link">درباره ما</a>
+
+                {% get_shop_information_value 'about-us' as about_us_slug %}
+                {% if about_us_slug %}
+                <a href="{% url 'static_pages:static_page_detail' slug_page_detail=about_us_slug %}" 
+                class="nav-link">درباره ما</a>
+                {% endif %}
             </nav>
 
             <div class="flex items-center space-x-5">
@@ -153,7 +158,9 @@
                 <a href="{% url 'products:product_list' %}" class="block py-2 px-4 text-gray-700 hover:bg-gray-100 rounded">محصولات</a>
                 <a href="javascript:void(0);" class="block py-2 px-4 text-gray-700 hover:bg-gray-100 rounded">تخفیف‌های ویژه</a>
                 <a href="{% url 'blog:post_list' %}" class="block py-2 px-4 text-gray-700 hover:bg-gray-100 rounded">وبلاگ</a>
-                <a href="javascript:void(0);" class="block py-2 px-4 text-gray-700 hover:bg-gray-100 rounded">درباره ما</a>
+                {% if about_us_slug %}
+                <a href="{% url 'static_pages:static_page_detail' slug_page_detail=about_us_slug %}" class="block py-2 px-4 text-gray-700 hover:bg-gray-100 rounded">درباره ما</a>
+                {% endif %}
         </nav>
     </header>
 
@@ -162,8 +169,8 @@
             <div class="messages">
                 {% for message in messages %}
                     <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <p>{{ message }}</p>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">X</button>
                     </div>
                 {% endfor %}
             </div>
@@ -186,9 +193,9 @@
                 <div>
                     <h3 class="text-4xl font-bold mb-0 mt-0">{{ SHOP_NAME }}</h3>
                     <ul class="space-y-3">
-                        {% get_shop_information_value 'about-us' as about_us_slug %}
                         {% if about_us_slug %}
-                        <li><a href="{% url 'static_pages:static_page_detail' slug_page_detail=about_us_slug %}" class="text-gray-400 hover:text-white transition-colors">درباره {{ SHOP_NAME }}</a></li>
+                        <li><a href="{% url 'static_pages:static_page_detail' slug_page_detail=about_us_slug %}" 
+                            class="text-gray-400 hover:text-white transition-colors">درباره {{ SHOP_NAME }}</a></li>
                         {% endif %}
                         {% comment %} <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors"></a></li>
                         <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors"></a></li> {% endcomment %}

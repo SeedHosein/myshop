@@ -1611,3 +1611,129 @@ a {
     margin-right: 0;
   }
 }
+
+/* Messages */
+.messages {
+  position: fixed;
+  display: grid;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1050;
+  max-width: 800px;
+  pointer-events: none; /* Allows click-through messages to work */
+}
+
+@media (min-width: 640px) {
+  .messages {
+    max-width: 500px;
+  }
+}
+
+@media (min-width: 768px) {
+  .messages {
+    max-width: 600px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .messages {
+    max-width: 700px;
+  }
+}
+
+.messages .alert {
+  pointer-events: all; /* Only the message itself should be clickable. */
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border: none;
+  padding: 3px 5px;
+  margin-bottom: 8px;
+  gap: 20px;
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: slideDown 0.4s ease-out forwards;
+  display: inline-flex;
+  position: relative;
+  overflow: hidden;
+  height: 45px;
+  direction: rtl;
+  text-align: right;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Message arrival animation */
+@keyframes slideDown {
+  to {
+      opacity: 1;
+      transform: translateY(0);
+  }
+}
+
+/* Progress timer (bottom line of message) */
+.messages .alert::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.6);
+  width: 100%;
+  transform: scaleX(1);
+  transform-origin: left;
+  animation: progressTimer 5s linear forwards;
+}
+
+@keyframes progressTimer {
+  from {
+      transform: scaleX(1);
+  }
+  to {
+      transform: scaleX(0);
+  }
+}
+
+.messages .alert p {
+  margin-right: 15px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+/* Different colors of messages */
+.alert-success {
+  background-color: #10b981;
+  color: white;
+}
+
+.alert-error {
+  background-color: #ef4444;
+  color: white;
+}
+
+.alert-warning {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.alert-info {
+  background-color: #3b82f6;
+  color: white;
+}
+
+/* Close button */
+.messages .btn-close {
+  filter: invert(1);
+  opacity: 0.8;
+  margin-left: 8px;
+  background: none;
+  font-size: 25px;
+  margin-top: auto;
+  margin-bottom: auto;
+  order: 1;
+  flex-shrink: 0;
+}
+
+.messages .btn-close:hover {
+  opacity: 1;
+}
