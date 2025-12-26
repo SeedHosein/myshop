@@ -36,7 +36,9 @@ class ProductVariantForm(forms.ModelForm):
         # --- Rule 2: Validate that this combination of attributes is unique for this product (Corrected Logic) ---
         
         # Start with all variants of the same product.
-        variants = ProductVariant.objects.filter(product=self.instance.product)
+        # Use product_id if the instance is new (hasn't been saved yet)
+        product_id = self.instance.product_id if self.instance.pk else self.cleaned_data.get('product').pk
+        variants = ProductVariant.objects.filter(product_id=product_id)
         
         # If editing, exclude the current instance from the check.
         if self.instance.pk:
