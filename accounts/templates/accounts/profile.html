@@ -1,37 +1,48 @@
 {# This is a new file: accounts/templates/accounts/profile.html #}
 {% extends "accounts/base_accounts.html" %}
+{% load static %}
 {% load jalali_tags %}
 
-{% block form_content %}
-    <h3>سلام {{ profile.first_name|default:profile.email }}!</h3>
-    
-    <h3>اطلاعات شما:</h3>
-    <ul>
-        <li><strong>ایمیل:</strong> {{ profile.email|default:"-" }}</li>
-        <li><strong>شماره تلفن:</strong> {{ profile.phone_number|default:"-" }}</li>
-        <li><strong>نام:</strong> {{ profile.first_name|default:"-" }}</li>
-        <li><strong>نام خانوادگی:</strong> {{ profile.last_name|default:"-" }}</li>
-        <li><strong>کد ملی:</strong> {{ profile.national_code|default:"-" }}</li>
-        <li><strong>آدرس:</strong> {{ profile.address|default:"-" }}</li>
-        <li><strong>شهر:</strong> {{ profile.city|default:"-" }}</li>
-        <li><strong>کد پستی:</strong> {{ profile.postal_code|default:"-" }}</li>
-        <li><strong>تاریخ عضویت:</strong> {{ profile.date_joined|to_jalali:"%Y/%m/%d" }}</li>
-    </ul>
+{% block title %}پروفایل کاربری{% endblock %}
 
-    <p>
-        <a href="{% url 'accounts:profile_update' %}" class="btn">ویرایش پروفایل</a>
-        <a href="{% url 'accounts:password_change' %}" class="btn">تغییر رمز عبور</a>
-    </p>
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/login_styles.css' %}">
+{% endblock extra_head %}
 
-    {# Example: Display order history (requires Order model and context in view) #}
-    {% if orders %}
-    <h3>تاریخچه سفارشات اخیر:</h3>
-    <ul>
-        {% for order in orders %}
-            <li>سفارش شماره {{ order.order_number }} - وضعیت: {{ order.get_status_display }} - مبلغ کل: {{ order.total_amount }} تومان</li>
-        {% empty %}
-            <li>شما هنوز سفارشی ثبت نکرده اید.</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-{% endblock form_content %} 
+{% block content %}
+<div class="mx-auto px-4 flex justify-center">
+    <div class="auth-login bg-white w-full max-w-md p-8 rounded-2xl shadow-lg border border-gray-100 text-center">
+        <h3>سلام {{ profile.first_name|default:profile.email }}!</h3>
+        
+        <h3>اطلاعات شما:</h3>
+        <ul class="list-unstyled text-right">
+            <li><strong>ایمیل:</strong> {{ profile.email|default:"-" }}</li>
+            <li><strong>شماره تلفن:</strong> {{ profile.phone_number|default:"-" }}</li>
+            <li><strong>نام:</strong> {{ profile.first_name|default:"-" }}</li>
+            <li><strong>نام خانوادگی:</strong> {{ profile.last_name|default:"-" }}</li>
+            <li><strong>کد ملی:</strong> {{ profile.national_code|default:"-" }}</li>
+            <li><strong>آدرس:</strong> {{ profile.address|default:"-" }}</li>
+            <li><strong>شهر:</strong> {{ profile.city|default:"-" }}</li>
+            <li><strong>کد پستی:</strong> {{ profile.postal_code|default:"-" }}</li>
+            <li><strong>تاریخ عضویت:</strong> {{ profile.date_joined|to_jalali:"%Y/%m/%d" }}</li>
+        </ul>
+
+        <div class="flex justify-around mt-4">
+            <a href="{% url 'accounts:profile_update' %}" class="btn">ویرایش پروفایل</a>
+            <a href="{% url 'accounts:password_change' %}" class="btn">تغییر رمز عبور</a>
+        </div>
+
+        {# Example: Display order history (requires Order model and context in view) #}
+        {% if orders %}
+        <h3 class="mt-8">تاریخچه سفارشات اخیر:</h3>
+        <ul class="list-unstyled text-right">
+            {% for order in orders %}
+                <li>سفارش شماره {{ order.order_number }} - وضعیت: {{ order.get_status_display }} - مبلغ کل: {{ order.total_amount }} تومان</li>
+            {% empty %}
+                <li>شما هنوز سفارشی ثبت نکرده اید.</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}

@@ -30,19 +30,20 @@
 }
 
 .btn {
-    width: 90%;
+    flex-grow: 1;
+    max-width: 160px;
     color: var(--white);
     background-color: var(--primary-red);
     border-radius: 0.4rem;
-    margin-left: auto;
-    margin-right: auto;
+    margin: 0.5rem auto;
     display: block;
-    max-width: 350px;
     padding: 0.5rem 1rem;
     font-weight: 600;
     font-size: 15px;
     transition: all 0.2s;
     white-space: nowrap;
+    text-decoration: none;
+    text-align: center;
 }
 
 .otp-container {
@@ -96,4 +97,33 @@
 
 .resend-btn.enabled:hover {
     background-color: #2563eb;
+}
+
+/* Additional styles for profile and profile update pages */
+.list-unstyled {
+    list-style: none;
+    padding-left: 0;
+}
+
+.list-unstyled li {
+    margin-bottom: 0.5rem;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.errorlist {
+    color: var(--primary-red);
+    font-size: 14px;
+    margin-top: 0.25rem;
+    text-align: right;
+}
+
+.form-control {
+    background-color: var(--gray-50);
+}
+
+textarea {
+    border: solid 1px #ccc;
 }

@@ -73,8 +73,6 @@ class UserProfileUpdateForm(forms.ModelForm):
             'first_name', 'last_name',
             'national_code', 'address', 'city', 'postal_code'
         )
-        # Since model field verbose_names are already Persian, explicit labels here might be redundant
-        # but providing them for clarity and to ensure they are indeed Persian.
         labels = {
             'first_name': "نام",
             'last_name': "نام خانوادگی",
@@ -84,8 +82,12 @@ class UserProfileUpdateForm(forms.ModelForm):
             'postal_code': "کد پستی",
         }
         widgets = {
-            # Ensure widgets defined here also align with Persian UI if needed, but usually class is sufficient
-            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control bg-gray-50'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control bg-gray-50'}),
+            'national_code': forms.TextInput(attrs={'class': 'form-control bg-gray-50'}),
+            'address': forms.Textarea(attrs={'class': 'form-control bg-gray-50', 'rows': 3}),
+            'city': forms.TextInput(attrs={'class': 'form-control bg-gray-50'}),
+            'postal_code': forms.TextInput(attrs={'class': 'form-control bg-gray-50'}),
         }
 
     # Not strictly necessary to override __init__ if fields are defined directly with Persian labels.
