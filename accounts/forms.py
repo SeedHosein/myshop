@@ -59,6 +59,12 @@ class UserLoginForm(AuthenticationForm):
         widget=forms.PasswordInput(attrs={'autocomplete': 'current-password', 'class': 'form-control'}),
     )
 
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if username and username[:-9] in ['09', '989', '9']:
+            return "+989" + username[-9:]
+        return username
+
 class UserProfileUpdateForm(forms.ModelForm):
     first_name = forms.CharField(label="نام", required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField(label="نام خانوادگی", required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))

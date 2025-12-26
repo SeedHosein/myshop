@@ -176,12 +176,6 @@ class UserRegisterView(SuccessMessageMixin, View):
         }
 
         return redirect('accounts:verify_otp')
-        return render(request, 'accounts/verify_otp.html', {
-            'SHOP_NAME': settings.SHOP_NAME,
-            'destination': destination,
-            'input_type': input_type,
-            'masked_destination': masked_destination,
-        })
         
     def get_client_ip(self, request):
         """Get the user's real IP (even behind a proxy)"""
