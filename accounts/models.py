@@ -12,7 +12,10 @@ class CustomUserManager(BaseUserManager):
         Create and save a user with the given email or phone number and password.
         """
         if not email and not phone_number:
-            raise ValueError('ایمیل یا شماره تلفن باید وارد شود.')
+            raise ValueError('Email or phone number must be entered.')
+            
+        if not password:
+            raise ValueError('A password must be entered.')
 
         if email:
             email = self.normalize_email(email)
@@ -20,6 +23,7 @@ class CustomUserManager(BaseUserManager):
 
         if phone_number:
             extra_fields.setdefault('phone_number', phone_number)
+            
 
         user = self.model(**extra_fields)
         user.set_password(password)
@@ -39,10 +43,8 @@ class CustomUserManager(BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser باید is_superuser=True داشته باشد.')
 
-        if email:
+        if email and phone_number:
             return self.create_user(email=email, phone_number=phone_number, password=password, **extra_fields)
-        elif phone_number:
-             return self.create_user(phone_number=phone_number, password=password, **extra_fields)
         else: 
             raise ValueError('ایجاد Superuser نیازمند ایمیل یا شماره تلفن است.')
 
@@ -50,12 +52,19 @@ class CustomUserManager(BaseUserManager):
 class UserProfile(AbstractUser):
     username = None
 
-    email = models.EmailField('آدرس ایمیل', unique=True, blank=True, help_text='. فرمت: name@domain.com')
+    email = models.EmailField(
+        'آدرس ایمیل', 
+        unique=True, 
+        blank=True, 
+        null=True,
+        help_text='. فرمت: name@domain.com'
+    )
     phone_number = models.CharField(
         'شماره تلفن همراه',
         max_length=15,
         unique=True,
         blank=True,
+        null=True,
         help_text='. فرمت: 09xxxxxxxxx یا +989xxxxxxxxx'
     )
 
@@ -92,10 +101,13 @@ class UserProfile(AbstractUser):
         if not self.email and not self.phone_number:
             raise ValueError('Email or phone number must be set.')
         if self.phone_number:
-            if self.phone_number[:-9] in ['09', '989']:
-                self.phone_number = "+989" + self.phone_number[:-9]
+            if self.phone_number[:-9] in ['09', '989', '9']:
+                self.phone_number = "+989" + self.phone_number[-9:]
             if len(self.phone_number) != 13 and self.phone_number[:-9] != "+989":
+                print(self.phone_number)
                 raise ValueError('Mobile number is invalid.')
+        if len(self.password) < 8:
+            raise ValueError('Password must be at least 8 characters.')
                 
         return super().save(**kwargs)
 

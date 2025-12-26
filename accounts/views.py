@@ -68,7 +68,7 @@ class UserRegisterView(SuccessMessageMixin, View):
         email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
         mobile_regex = r'^\+989\d{9}$'
         if username[:-9] in ['09', '989', '9']:
-            username = "+989" + username[:-9]
+            username = "+989" + username[-9:]
 
         if re.match(email_regex, username):
             input_type = 'email'
@@ -257,7 +257,7 @@ class VerifyOTPView(View):
 
         if not user_data:
             messages.error(request, "کد تایید شما منقضی شده است. لطفاً دوباره درخواست دهید.")
-            del request.session['otp_verification_data']  # پاک کردن session
+            del request.session['otp_verification_data']
             return redirect('accounts:register')
 
         # Convert bytes to strings
@@ -277,8 +277,8 @@ class VerifyOTPView(View):
             password = user_data[b'password'].decode('utf-8')
 
             user = UserProfile.objects.create_user(
-                email=destination if input_type == 'email' else '',
-                phone_number=destination if input_type == 'mobile' else '',
+                email=destination if input_type == 'email' else None,
+                phone_number=destination if input_type == 'mobile' else None,
                 password=password,
                 first_name=first_name,
                 last_name=last_name,

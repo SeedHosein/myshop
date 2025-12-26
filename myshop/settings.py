@@ -118,7 +118,7 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
-        "KEY_PREFIX": SHOP_NAME
+        "KEY_PREFIX": SHOP_NAME.replace(" ", "")
     }
 }
 
@@ -288,7 +288,7 @@ CKEDITOR_5_CONFIGS = {
             'toolbar': [
                 'toggleImageCaption', 'imageTextAlternative', '|',
                 'imageStyle:inline', 'imageStyle:wrapText', 'imageStyle:breakText', 'imageStyle:alignLeft', 'imageStyle:alignCenter', 'imageStyle:alignRight', '|',
-                'resizeImage:50', 'resizeImage:75', 'resizeImage:original', # گزینه‌های بیشتر برای تغییر اندازه
+                'resizeImage:50', 'resizeImage:75', 'resizeImage:original',
             ],
             'styles': ['full', 'side', 'alignLeft', 'alignCenter', 'alignRight', 'wrapText', 'breakText'],
             "uploadUrl": "/blog/media/blog/uplodeimage/"
@@ -323,7 +323,7 @@ CKEDITOR_5_CONFIGS = {
             }
         },
         
-        # تعریف استایل‌های سفارشی برای منوی "Style"
+        # Define custom styles for the "Style" menu
         'style': {
             'definitions': [
                 {
@@ -350,7 +350,7 @@ CKEDITOR_5_CONFIGS = {
             ]
         },
 
-        # تنظیمات ابزار تغییر حالت حروف
+        # Font change tool settings
         'textTransformation': {
             'extraAttributes': {
                 'text-transform': ['uppercase', 'lowercase', 'capitalize']
@@ -360,11 +360,11 @@ CKEDITOR_5_CONFIGS = {
         'htmlSupport': {
             'allow': [{'name': '/.*/', 'attributes': True, 'classes': True, 'styles': True}]
         },
-        'htmlEmbed': { # تنظیمات مربوط به جاسازی کد HTML
+        'htmlEmbed': {
             'showPreviews': True,
-            # 'sanitizeHtml': (html) => ({ html, hasChanged: false }) # غیرفعال کردن پاکسازی برای کاربران قابل اعتماد
+            # 'sanitizeHtml': (html) => ({ html, hasChanged: false })
         },
-        'codeBlock': { # تنظیمات پیشرفته بلوک کد
+        'codeBlock': {
             'languages': [
                 {'language': 'plaintext', 'label': 'Plain text'},
                 {'language': 'python', 'label': 'Python'},
@@ -375,7 +375,7 @@ CKEDITOR_5_CONFIGS = {
                 {'language': 'bash', 'label': 'Bash'},
             ]
         },
-        'wordCount': { # فعال‌سازی شمارنده کلمات
+        'wordCount': { # Enable word counter
             'displayWords': True,
             'displayCharacters': True
         },
