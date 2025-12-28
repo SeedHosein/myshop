@@ -1,3 +1,13 @@
+.profile-info-label {
+    font-weight: 400;
+    width: 30%;
+}
+
+.profile-info-value {
+    font-weight: 800;
+    width: 50%;
+}
+
 .form-group {
     margin-bottom: 1rem;
     width: 100%;
@@ -111,7 +121,12 @@
 }
 
 .list-unstyled li {
+    width: 100%;
     margin-bottom: 0.5rem;
+}
+
+.list-unstyled li table {
+    width: 100%;
 }
 
 .text-right {

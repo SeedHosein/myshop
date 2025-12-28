@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager, Group, Permission
+from django.core.validators import RegexValidator
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -51,6 +52,8 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('ایجاد Superuser نیازمند ایمیل یا شماره موبایل است.')
 
 
+phone_validator = RegexValidator(r"^\+989\d{9}$")
+
 class UserProfile(AbstractUser):
     username = None
 
@@ -64,7 +67,8 @@ class UserProfile(AbstractUser):
     phone_number = models.CharField(
         'شماره موبایل',
         max_length=15,
-        unique=True,
+        validators=[phone_validator],
+        unique=True, 
         blank=True,
         null=True,
         help_text='. فرمت: 09xxxxxxxxx یا +989xxxxxxxxx'
@@ -80,7 +84,8 @@ class UserProfile(AbstractUser):
         verbose_name='گروه‌ها',
         blank=True,
         help_text=(
-            'گروه‌هایی که این کاربر به آن‌ها تعلق دارد. یک کاربر تمام مجوزهای '            'اعطا شده به هر یک از گروه‌های خود را دریافت خواهد کرد.'
+            'گروه‌هایی که این کاربر به آن‌ها تعلق دارد. یک کاربر تمام مجوزهای '
+            'اعطا شده به هر یک از گروه‌های خود را دریافت خواهد کرد.'
         ),
         related_name="user_profile_groups",
         related_query_name="user_profile",

@@ -29,11 +29,9 @@ class UserProfileAdmin(BaseUserAdmin):
             'fields': ('email', 'phone_number', 'password'), # Assuming password handling is appropriate for add form
         }),
         ('اطلاعات شخصی (اختیاری)', {
-            'classes': ('collapse',),
             'fields': ('first_name', 'last_name', 'national_code'),
         }),
         ('دسترسی‌ها (اختیاری)', {
-            'classes': ('collapse',),
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
         }),
     )
@@ -48,6 +46,14 @@ class UserProfileAdmin(BaseUserAdmin):
 
     # Ensure that read-only fields like date_joined and last_login are shown correctly.
     readonly_fields = ('last_login', 'date_joined')
+    
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        is_superuser = request.user.is_superuser
+        if not is_superuser:
+            form.base_fields['is_superuser'].disabled = False
+            
+        return form
 
     # In a real project, you would define UserProfileChangeForm and UserProfileCreationForm
     # that inherit from UserChangeForm and UserCreationForm respectively, and point to your UserProfile model.

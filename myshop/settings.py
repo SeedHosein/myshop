@@ -118,7 +118,7 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
-        "KEY_PREFIX": SHOP_NAME.replace(" ", "")
+        "KEY_PREFIX": config('SHOP_NAME_ENGLISH').replace(" ", "")
     }
 }
 

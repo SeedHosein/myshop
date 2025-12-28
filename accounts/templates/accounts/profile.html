@@ -16,15 +16,15 @@
         
         <h3>اطلاعات شما:</h3>
         <ul class="list-unstyled text-right">
-            <li><strong>ایمیل:</strong> {{ profile.email|default:"-" }}</li>
-            <li><strong>شماره موبایل:</strong> {{ profile.phone_number|default:"-" }}</li>
-            <li><strong>نام:</strong> {{ profile.first_name|default:"-" }}</li>
-            <li><strong>نام خانوادگی:</strong> {{ profile.last_name|default:"-" }}</li>
-            <li><strong>کد ملی:</strong> {{ profile.national_code|default:"-" }}</li>
-            <li><strong>آدرس:</strong> {{ profile.address|default:"-" }}</li>
-            <li><strong>شهر:</strong> {{ profile.city|default:"-" }}</li>
-            <li><strong>کد پستی:</strong> {{ profile.postal_code|default:"-" }}</li>
-            <li><strong>تاریخ عضویت:</strong> {{ profile.date_joined|to_jalali:"%Y/%m/%d" }}</li>
+            <li><table><td class="profile-info-label">ایمیل: </td><td class="profile-info-value" dir="ltr">{{ profile.email|default:"-" }}</td></table></li>
+            <li><table><td class="profile-info-label">شماره موبایل: </td><td class="profile-info-value" dir="ltr">{{ profile.phone_number|default:"-" }}</td></table></li>
+            <li><table><td class="profile-info-label">نام: </td><td class="profile-info-value">{{ profile.first_name|default:"-" }}</td></table></li>
+            <li><table><td class="profile-info-label">نام خانوادگی: </td><td class="profile-info-value">{{ profile.last_name|default:"-" }}</td></table></li>
+            <li><table><td class="profile-info-label">کد ملی: </td><td class="profile-info-value">{{ profile.national_code|default:"-" }}</td></table></li>
+            <li><table><td class="profile-info-label">آدرس: </td><td class="profile-info-value">{{ profile.address|default:"-" }}</td></table></li>
+            <li><table><td class="profile-info-label">شهر: </td><td class="profile-info-value">{{ profile.city|default:"-" }}</td></table></li>
+            <li><table><td class="profile-info-label">کد پستی: </td><td class="profile-info-value">{{ profile.postal_code|default:"-" }}</td></table></li>
+            <li><table><td class="profile-info-label">تاریخ عضویت: </td><td class="profile-info-value">{{ profile.date_joined|to_jalali:"%Y/%m/%d" }}</td></table></li>
         </ul>
 
         <div class="flex justify-around mt-4">
