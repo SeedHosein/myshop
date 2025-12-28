@@ -1,7 +1,12 @@
-{# This is a new file: accounts/templates/accounts/base_accounts.html #}
+{# accounts/templates/accounts/base_accounts.html #}
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %} حساب کاربری | فروشگاه {{ SHOP_NAME }}{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/accounts_styles.css' %}">
+{% endblock extra_head %}
 
 {% block content %}
 <div class="row">
