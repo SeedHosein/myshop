@@ -13,70 +13,6 @@
     {% block extra_head %}{% endblock extra_head %}
 </head>
 <body>
-    {% if 0 %}
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'core:home' %}">{{ SHOP_NAME }}</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
-            aria-controls="navbarNav" aria-expanded="false" aria-label="باز و بسته کردن منو">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'core:home' %}">خانه</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'products:product_list' %}">محصولات</a>
-                    </li>
-                    <li class="nav-item">
-                        {# <a class="nav-link" href="#">دسته بندی ها</a> #}
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'blog:post_list' %}">وبلاگ</a>
-                    </li>
-                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'chat:start_chat' %}">پشتیبانی آنلاین</a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'cart_and_orders:cart_detail' %}">
-                            سبد خرید <span class="badge bg-danger" id="cart-item-count">{{ request.session.cart.item_count|default:0 }}</span>
-                        </a>
-                    </li>
-                    {% if user.is_authenticated %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                {{ user.email }}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownUser">
-                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">پروفایل کاربری</a></li>
-                                {% if user.is_staff %}
-                                    <li><a class="dropdown-item" href="{% url 'admin:index' %}">پنل ادمین</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'chat:support_dashboard' %}">داشبورد پشتیبانی</a></li>
-                                {% endif %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form method="post" action="{% url 'accounts:logout' %}" style="display: inline;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="dropdown-item">خروج</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:login' %}">ورود</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:register' %}">ثبت نام</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>{% endif %}
     <!-- Header -->
     <header class="bg-white shadow-sm sticky top-0 z-50">
         <div class="container mx-auto px-4 flex justify-between items-center py-4">
@@ -198,12 +134,12 @@
                         <li><a href="{% url 'static_pages:static_page_detail' slug_page_detail=about_us_slug %}" 
                             class="text-gray-400 hover:text-white transition-colors">درباره {{ SHOP_NAME }}</a></li>
                         {% endif %}
-                        {% comment %} <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors"></a></li>
-                        <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors"></a></li> {% endcomment %}
                         {% get_shop_information_value 'contact-us' as contact_us_slug %}
                         {% if contact_us_slug %}
                         <li><a href="{% url 'static_pages:static_page_detail' slug_page_detail=contact_us_slug %}" class="text-gray-400 hover:text-white transition-colors">تماس با ما</a></li>
                         {% endif %}
+                        {% comment %} <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors"></a></li> {% endcomment %}
+                        {% comment %} <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors"></a></li> {% endcomment %}
                     </ul>
                     <div class="flex space-x-4 mt-6">
                         {% get_shop_information_value 'instagram' as instagram_id %}
@@ -224,10 +160,9 @@
                 <div>
                     <h3 class="text-lg font-bold text-white mb-4">دسترسی سریع</h3>
                     <ul class="space-y-3">
-                        <li><a href="{% url 'accounts:profile' %}" class="text-gray-400 hover:text-white transition-colors">حساب کاربری من</a></li>
+                        <li><a href="{% url 'accounts:profile' %}" class="text-gray-400 hover:text-white transition-colors">حساب کاربری</a></li>
                         <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors">پیگیری سفارش</a></li>
                         <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors">تخفیف‌ها</a></li>
-                        <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors">تماس با ما</a></li>
                     </ul>
                 </div>
                 <!-- Customer Service -->
