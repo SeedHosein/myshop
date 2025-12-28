@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager, Group, Permission
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
+
 
 class CustomUserManager(BaseUserManager):
     """
@@ -46,7 +48,7 @@ class CustomUserManager(BaseUserManager):
         if email and phone_number:
             return self.create_user(email=email, phone_number=phone_number, password=password, **extra_fields)
         else: 
-            raise ValueError('ایجاد Superuser نیازمند ایمیل یا شماره تلفن است.')
+            raise ValueError('ایجاد Superuser نیازمند ایمیل یا شماره موبایل است.')
 
 
 class UserProfile(AbstractUser):
@@ -60,7 +62,7 @@ class UserProfile(AbstractUser):
         help_text='. فرمت: name@domain.com'
     )
     phone_number = models.CharField(
-        'شماره تلفن همراه',
+        'شماره موبایل',
         max_length=15,
         unique=True,
         blank=True,
@@ -104,10 +106,7 @@ class UserProfile(AbstractUser):
             if self.phone_number[:-9] in ['09', '989', '9']:
                 self.phone_number = "+989" + self.phone_number[-9:]
             if len(self.phone_number) != 13 and self.phone_number[:-9] != "+989":
-                print(self.phone_number)
-                raise ValueError('Mobile number is invalid.')
-        if len(self.password) < 8:
-            raise ValueError('Password must be at least 8 characters.')
+                raise ValidationError('Mobile number is invalid.')
                 
         return super().save(**kwargs)
 

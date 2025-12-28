@@ -29,6 +29,11 @@
     text-align: right;
 }
 
+.helptext ul {
+    margin-top: 2px;
+    padding-right: 20px;
+}
+
 .btn {
     flex-grow: 1;
     max-width: 160px;

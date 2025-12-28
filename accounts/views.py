@@ -26,8 +26,16 @@ from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django_redis import get_redis_connection
+from django.utils.translation import gettext_lazy as _ # Added for messages
 
-from .forms import UserRegistrationForm, UserLoginForm, UserProfileUpdateForm
+from .forms import (
+    UserRegistrationForm, 
+    UserLoginForm, 
+    UserProfileUpdateForm,
+    CustomPasswordChangeForm,      # New custom form
+    CustomPasswordResetForm,       # New custom form
+    CustomSetPasswordForm          # New custom form
+)
 from .models import UserProfile
 # Assuming you have Order model in cart_and_orders app
 from cart_and_orders.models import Order
@@ -36,7 +44,8 @@ from cart_and_orders.models import Order
 class UserRegisterView(SuccessMessageMixin, View):
     model = UserProfile
     template_name = 'accounts/register.html'
-    
+    form_class = UserRegistrationForm
+
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
             return redirect(reverse_lazy('accounts:profile'))
@@ -45,55 +54,35 @@ class UserRegisterView(SuccessMessageMixin, View):
             del request.session['otp_verification_data']
         return super().dispatch(request, *args, **kwargs)
     
-    def get(self, request, username=None, first_name=None, last_name=None):
+    def get(self, request, form=None):
+        if form is None:
+            form = self.form_class()
         return render(request, self.template_name, {
             'SHOP_NAME': settings.SHOP_NAME,
-            'username': username,
-            'first_name': first_name,
-            'last_name': last_name
-            })
+            'form': form
+        })
     
     def post(self, request):
-        username = request.POST.get('username', '').strip()
-        first_name = request.POST.get('first_name', '').strip()
-        last_name = request.POST.get('last_name', '').strip()
-        password = request.POST.get('password', '')
-        password_confirm = request.POST.get('password_confirm', '')
+        form = self.form_class(request.POST)
         
-        if not all([username, first_name, last_name, password, password_confirm]):
-            messages.error(self.request, "همه فیلدها الزامی هستند. لطفاً همه را وارد کنید.")
-            return self.get(request, username=username, first_name=first_name, last_name=last_name)
-        
-        # Email or mobile detection
-        email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
-        mobile_regex = r'^\+989\d{9}$'
-        if username[:-9] in ['09', '989', '9']:
-            username = "+989" + username[-9:]
+        if not form.is_valid():
+            for field in form:
+                for error in field.errors:
+                    messages.error(request, f"{field.label}: {error}")
+            for error in form.non_field_errors():
+                messages.error(request, error)
+            # Pass the form back to get with its errors and pre-filled data
+            return self.get(request, form=form)
 
-        if re.match(email_regex, username):
-            input_type = 'email'
-            destination = username.lower()
-        elif re.match(mobile_regex, username):
-            input_type = 'mobile'
-            destination = username
-        else:
-            messages.error(self.request, "لطفاً ایمیل یا شماره موبایل معتبر وارد کنید.")
-            return self.get(request, username=username, first_name=first_name, last_name=last_name)
+        # Form is valid, proceed with OTP logic
+        username = form.cleaned_data['username'] # This is now normalized email or phone number
+        first_name = form.cleaned_data['first_name']
+        last_name = form.cleaned_data['last_name']
+        password = form.cleaned_data['password']
         
-        # Email or mobile phone duplicate check
-        if self.model.objects.filter(
-            email=destination if input_type == 'email' else '',
-            phone_number=destination if input_type == 'mobile' else ''
-        ).exists():
-            messages.error(request, "این ایمیل یا شماره موبایل قبلاً ثبت شده است.")
-            return self.get(request, username, first_name, last_name)
-        
-        if password and password_confirm and password != password_confirm:
-            messages.error(self.request, "رمزهای عبور وارد شده یکسان نیستند.")
-            return self.get(request, username=username, first_name=first_name, last_name=last_name)
-        if len(password or "") < 8: # Ensure password is not None before checking length
-            messages.error(self.request, "رمز عبور باید حداقل ۸ کاراکتر باشد.")
-            return self.get(request, username=username, first_name=first_name, last_name=last_name)
+        # input_type and destination are set by clean_username in the form
+        input_type = form.input_type
+        destination = form.destination
         
         # Rate Limiting based on IP + destination
         ip = self.get_client_ip(request)
@@ -111,7 +100,7 @@ class UserRegisterView(SuccessMessageMixin, View):
 
         if len(requests) >= 7:
             messages.error(self.request, "تعداد درخواست‌های شما زیاد است. لطفاً 10 دقیقه دیگر دوباره تلاش کنید.")
-            return self.get(request, username=username, first_name=first_name, last_name=last_name)
+            return self.get(request, form=form)
         
         
         redis_client = get_redis_connection("default")
@@ -120,7 +109,7 @@ class UserRegisterView(SuccessMessageMixin, View):
         time_lose_code = redis_client.ttl(user_data_key)
         if time_lose_code > 0:
             messages.error(self.request, f"لطفاً {time_lose_code} ثانیه صبر کنید و دوباره تلاش کنید.")
-            return self.get(request, username=username, first_name=first_name, last_name=last_name)
+            return self.get(request, form=form)
         
         # Add new request
         requests.append(current_time)
@@ -166,7 +155,7 @@ class UserRegisterView(SuccessMessageMixin, View):
         masked_destination = self.mask_destination(destination, input_type)
         messages.success(
             request, 
-            f"کد تأیید به { "شماره موبایل" if input_type == "mobile" else "ایمیل" } { masked_destination } شما ارسال شد."
+            f"کد تأیید به { 'شماره موبایل' if input_type == 'mobile' else 'ایمیل' } { masked_destination } شما ارسال شد."
             )
         
         request.session['otp_verification_data'] = {
@@ -208,7 +197,8 @@ class VerifyOTPView(View):
         
         time_lose_code = get_redis_connection("default").ttl(f"user_data:{verification_data['destination']}")
         if time_lose_code < 1:
-            del verification_data
+            if 'otp_verification_data' in request.session:
+                del request.session['otp_verification_data']
             messages.error(request, "کد تایید شما منقضی شده است. لطفاً دوباره ثبت‌نام کنید.")
             return redirect('accounts:register')
 
@@ -270,14 +260,21 @@ class VerifyOTPView(View):
             last_name = user_data[b'last_name'].decode('utf-8')
             password = user_data[b'password'].decode('utf-8')
 
-            user = UserProfile.objects.create_user(
-                email=destination if input_type == 'email' else None,
-                phone_number=destination if input_type == 'mobile' else None,
-                password=password,
-                first_name=first_name,
-                last_name=last_name,
-            )
-            user.save()
+            # Create user based on input type
+            if input_type == 'email':
+                user = UserProfile.objects.create_user(
+                    email=destination,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name,
+                )
+            else: # mobile
+                user = UserProfile.objects.create_user(
+                    phone_number=destination,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name,
+                )
 
             # Automatic login
             login(request, user, backend='accounts.backends.EmailOrPhoneBackend')
@@ -310,7 +307,7 @@ class UserLoginView(AuthLoginView):
     
     # Add a message for failed login
     def form_invalid(self, form):
-        messages.error(self.request, "نام کاربری (ایمیل/تلفن) یا رمز عبور اشتباه است. لطفا دوباره تلاش کنید.")
+        messages.error(self.request, "نام کاربری (آدرس ایمیل/شماره موبایل) یا رمز عبور اشتباه است. لطفا دوباره تلاش کنید.")
         return super().form_invalid(form)
 
     def get_context_data(self, **kwargs):
@@ -373,11 +370,11 @@ class UserProfileUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView)
 # Password Change Views
 class UserPasswordChangeView(LoginRequiredMixin, AuthPasswordChangeView):
     template_name = 'accounts/password_change_form.html'
-    success_url = reverse_lazy('accounts:password_change_done') # Django provides a PasswordChangeDoneView by default
-    success_message = "رمز عبور شما با موفقیت تغییر کرد."
+    form_class = CustomPasswordChangeForm
+    success_url = reverse_lazy('accounts:profile')
 
     def form_valid(self, form):
-        messages.success(self.request, self.success_message)
+        messages.success(self.request, "رمز عبور شما با موفقیت تغییر کرد.")
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -385,27 +382,16 @@ class UserPasswordChangeView(LoginRequiredMixin, AuthPasswordChangeView):
         context['SHOP_NAME'] = settings.SHOP_NAME
         return context
 
-# Django provides PasswordChangeDoneView automatically if you set success_url in PasswordChangeView
-# but if you want a custom template or message for it, you create it:
-from django.contrib.auth.views import PasswordChangeDoneView as AuthPasswordChangeDoneView
-class UserPasswordChangeDoneView(LoginRequiredMixin, AuthPasswordChangeDoneView):
-    template_name = 'accounts/password_change_done.html'
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        messages.success(self.request, "رمز عبور شما با موفقیت تغییر کرد.") # Message is now in PasswordChangeView
-        context['SHOP_NAME'] = settings.SHOP_NAME
-        return context
-
 
 # Password Reset Views
-# These generally use Django's built-in forms (PasswordResetForm, SetPasswordForm)
-# PasswordResetForm uses the email field to find users.
 class UserPasswordResetView(AuthPasswordResetView):
     template_name = 'accounts/password_reset_form.html'
-    email_template_name = 'accounts/password_reset_email.html' # You need to create this email template
-    subject_template_name = 'accounts/password_reset_subject.txt' # And this subject template
+    form_class = CustomPasswordResetForm
+    email_template_name = 'accounts/password_reset_email.html' 
+    subject_template_name = 'accounts/password_reset_subject.txt' 
     success_url = reverse_lazy('accounts:password_reset_done')
     from_email = 'noreply@myshop.com' # Replace with your actual sending email
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['SHOP_NAME'] = settings.SHOP_NAME
@@ -421,6 +407,7 @@ class UserPasswordResetDoneView(AuthPasswordResetDoneView):
 
 class UserPasswordResetConfirmView(AuthPasswordResetConfirmView):
     template_name = 'accounts/password_reset_confirm.html'
+    form_class = CustomSetPasswordForm
     success_url = reverse_lazy('accounts:password_reset_complete')
 
     def get_context_data(self, **kwargs):
