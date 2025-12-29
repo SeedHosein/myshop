@@ -106,4 +106,164 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     });
+
+    // --- Chat Pop-up Logic --- //
+    const chatFabButton = document.getElementById('chat-fab');
+    const chatPopupContainer = document.getElementById('chat-popup-container');
+    const chatCloseButton = document.getElementById('chat-close-button');
+    const chatLog = document.getElementById('chat-log');
+    const messageInput = document.getElementById('chat-message-input');
+    const messageSubmit = document.getElementById('chat-message-submit');
+
+    // These variables are set in base.html's script tag
+    // window.CHAT_SESSION_ID
+    // window.CURRENT_USER_EMAIL
+    // window.CURRENT_USER_IS_STAFF
+
+    function formatTimestamp(isoString) {
+        const date = new Date(isoString);
+        return date.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function appendMessage(data) {
+        const messageType = data.type;
+        const messageText = data.message;
+        const senderEmail = data.sender_email;
+        const senderIsStaff = data.sender_is_staff;
+        const timestamp = data.timestamp;
+        const formattedTime = formatTimestamp(timestamp);
+
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('chat-message');
+
+        if (messageType === 'chat_message') {
+            if (senderEmail === window.CURRENT_USER_EMAIL) {
+                messageElement.classList.add('user-message');
+            } else { // Assuming any other sender is the agent in this customer chat
+                messageElement.classList.add('agent-message');
+            }
+            messageElement.innerHTML = `<div>${messageText}</div><span class="message-meta">${formattedTime} - ${senderEmail}</span>`;
+        } else if (messageType === 'system_message') {
+            messageElement.classList.add('system-message');
+            messageElement.textContent = `${messageText} (${formattedTime})`;
+        }
+        
+        chatLog.appendChild(messageElement);
+        chatLog.scrollTop = chatLog.scrollHeight; // Auto-scroll to bottom
+    }
+
+    if (chatFabButton && chatPopupContainer && chatCloseButton && chatLog && messageInput && messageSubmit) {
+        let chatSocket = null;
+
+        const connectWebSocket = () => {
+            if (window.CHAT_SESSION_ID && (!chatSocket || chatSocket.readyState === WebSocket.CLOSED)) {
+                chatSocket = new WebSocket(
+                    'ws://'
+                    + window.location.host
+                    + '/ws/chat/'
+                    + window.CHAT_SESSION_ID
+                    + '/'
+                );
+
+                chatSocket.onopen = function(e) {
+                    console.log('Chat socket opened successfully');
+                    // messageInput.focus();
+                };
+
+                chatSocket.onmessage = function(e) {
+                    const data = JSON.parse(e.data);
+                    appendMessage(data);
+                };
+
+                chatSocket.onclose = function(e) {
+                    console.error('Chat socket closed unexpectedly', e);
+                    // Attempt to reconnect after a delay
+                    setTimeout(() => {
+                        console.log("Attempting to reconnect chat socket...");
+                        connectWebSocket();
+                    }, 3000); // Try to reconnect every 3 seconds
+                };
+
+                chatSocket.onerror = function(e) {
+                    console.error('Chat socket error:', e);
+                };
+            }
+        };
+
+        chatFabButton.addEventListener('click', function() {
+            if (!window.CHAT_SESSION_ID) {
+                alert("برای شروع گفتگو باید وارد حساب کاربری خود شوید."); // Or redirect to login
+                return;
+            }
+            if (chatPopupContainer.classList.contains('hidden')) {
+            chatPopupContainer.classList.remove('hidden'); // Make it visible for animation
+            setTimeout(() => chatPopupContainer.classList.add('active'), 10); // Trigger transition
+            connectWebSocket(); // Establish WebSocket connection when chat opens
+            messageInput.focus();
+            } else {
+                chatCloseButton.click();
+            }
+        });
+
+        chatCloseButton.addEventListener('click', function() {
+            chatPopupContainer.classList.remove('active');
+            setTimeout(() => chatPopupContainer.classList.add('hidden'), 300); // Hide after transition
+            if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                chatSocket.close(); // Close WebSocket when chat pop-up is hidden
+            }
+        });
+
+        // Close pop-up if clicking outside the content (on the overlay)
+        chatPopupContainer.addEventListener('click', function(event) {
+            if (event.target === chatPopupContainer) {
+                chatCloseButton.click();
+            }
+        });
+
+        messageInput.onkeyup = function(e) {
+            if (e.key === 'Enter') {
+                messageSubmit.click();
+            }
+        };
+
+        messageSubmit.onclick = function(e) {
+            const message = messageInput.value;
+            if (message.trim() === '') return;
+
+            if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                chatSocket.send(JSON.stringify({
+                    'message': message
+                }));
+                messageInput.value = '';
+            } else {
+                console.error("WebSocket is not open. Cannot send message.");
+                alert("خطا در اتصال به چت. لطفا صفحه را رفرش کنید.");
+            }
+        };
+    } else {
+        chatFabButton.addEventListener('click', function() {
+            if (!window.CHAT_SESSION_ID) {
+                alert("برای شروع گفتگو باید وارد حساب کاربری خود شوید."); // Or redirect to login
+                return;
+            }
+            if (chatPopupContainer.classList.contains('hidden')) {
+            chatPopupContainer.classList.remove('hidden'); // Make it visible for animation
+            setTimeout(() => chatPopupContainer.classList.add('active'), 10); // Trigger transition
+            } else {
+                chatCloseButton.click();
+            }
+        });
+
+        chatCloseButton.addEventListener('click', function() {
+            chatPopupContainer.classList.remove('active');
+            setTimeout(() => chatPopupContainer.classList.add('hidden'), 300); // Hide after transition
+        });
+
+        // Close pop-up if clicking outside the content (on the overlay)
+        chatPopupContainer.addEventListener('click', function(event) {
+            if (event.target === chatPopupContainer) {
+                chatCloseButton.click();
+            }
+        });
+    }
 });

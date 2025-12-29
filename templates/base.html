@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock title %} | {{ SHOP_NAME }}</title>
-    <link rel="stylesheet" href="{% static "css/ckeditor5-content.css" %}">
+    <link rel="stylesheet" href="{% static 'css/ckeditor5-content.css' %}">
     <link rel="stylesheet" href="{% static 'css/base_styles.css' %}">
     {% block extra_head %}{% endblock extra_head %}
 </head>
@@ -193,9 +193,59 @@
             <span class="text-muted">تمامی حقوق برای فروشگاه {{ SHOP_NAME }} محفوظ است - &copy; {% now "Y" %}</span>
         </div>
     </footer>
+    
+    {% if not user.is_staff %}
+        <!-- Chat Widget -->
+        <div class="fixed bottom-6 right-6 z-100 flex flex-col items-end">
+            <!-- Chat Window -->
+            <div id="chat-popup-container" class="chat-popup-container hidden">
+                <div class="chat-popup-content">
+                    <div class="chat-popup-header">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"><i class="fas fa-headset"></i></div>
+                            <span class="font-bold text-sm">پشتیبانی آنلاین</span>
+                        </div>
+                        <button id="chat-close-button" class="chat-close-button">&times;</button>
+                    </div>
+                    {% if user.is_authenticated and CHAT_SESSION_ID %}
+                    <div id="chat-log" class="chat-log">
+                        <!-- Initial greeting message -->
+                        <div class="system-message">سلام! چطور می‌توانم کمکتان کنم؟ 👋</div>
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chat-message-input" class="chat-message-input" placeholder="پیام خود را بنویسید...">
+                        <button id="chat-message-submit" class="chat-message-submit"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                    {% else %}
+                    <!-- INSERT_YOUR_CODE -->
+                    <div id="chat-log" class="chat-log">
+                        <div class="system-message">برای استفاده از پشتیبانی آنلاین لطفاً ابتدا وارد حساب خود شوید.</div>
+                    </div>
+                    <div class="flex justify-center p-4">
+                        <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="bg-primary-red text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors">
+                            ورود به حساب کاربری
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Chat Button -->
+            <button id="chat-fab" class="chat-fab-button">
+                <i class="fas fa-comment-dots"></i>
+            </button>
+        </div>
+    {% endif %}
 
+    <script>
+        // Use a global variable for CHAT_SESSION_ID if available from Django context
+        // Ensure it's only set if the user is authenticated and not staff
+        window.CHAT_SESSION_ID = "{{ CHAT_SESSION_ID|escapejs }}";
+        window.CURRENT_USER_EMAIL = "{{ user.email|escapejs }}";
+        window.CURRENT_USER_IS_STAFF = {% if user.is_staff %}true{% else %}false{% endif %};
+    </script>
     <script src="{% static 'js/base_scripts.js' %}"></script>
     <script src="{% static 'js/search.js' %}"></script>
     {% block extra_scripts %}{% endblock extra_scripts %}
 </body>
-</html> 
+</html>

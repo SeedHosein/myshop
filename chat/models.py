@@ -35,7 +35,7 @@ class ChatSession(models.Model):
 
     def __str__(self):
         if self.user:
-            user_display = self.user.get_full_name() or self.user.email
+            user_display = self.user.get_full_name or self.user.email or self.user.phone_number
             return f"گفتگو با {user_display} ({self.id})"
         elif self.guest_email:
             return f"گفتگو با مهمان {self.guest_email} ({self.id})"

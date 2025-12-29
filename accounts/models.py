@@ -135,3 +135,11 @@ class UserProfile(AbstractUser):
         elif self.last_name:
             return self.last_name
         return f'کاربر {settings.SHOP_NAME}'
+    
+    @property
+    def get_short_name_staff(self):
+        if self.first_name:
+            return self.first_name
+        elif self.last_name:
+            return self.last_name
+        return None
