@@ -1,15 +1,14 @@
 from django import template
-from core.models import ShopInformation
+# from core.models import ShopInformation
 
 register = template.Library()
 
 @register.simple_tag
-def get_shop_information_value(name):
+def get_shop_information_value(name, ShopInformation):
     """
-    e.g: {% get_static_page_slug 'about' %}
+    e.g: {% get_static_page_slug 'about' ShopInformation %}
     """
     try:
-        page = ShopInformation.objects.get(name=name)
-        return page.value
-    except ShopInformation.DoesNotExist:
+        return ShopInformation[name]
+    except:
         return ""

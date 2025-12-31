@@ -24,7 +24,7 @@
                 <a href="javascript:void(0);" class="nav-link">تخفیف‌های ویژه</a>
                 <a href="{% url 'blog:post_list' %}" class="nav-link">وبلاگ</a>
 
-                {% get_shop_information_value 'about-us' as about_us_slug %}
+                {% get_shop_information_value 'about-us' ShopInformation as about_us_slug %}
                 {% if about_us_slug %}
                 <a href="{% url 'static_pages:static_page_detail' slug_page_detail=about_us_slug %}" 
                 class="nav-link">درباره ما</a>
@@ -134,7 +134,7 @@
                         <li><a href="{% url 'static_pages:static_page_detail' slug_page_detail=about_us_slug %}" 
                             class="text-gray-400 hover:text-white transition-colors">درباره {{ SHOP_NAME }}</a></li>
                         {% endif %}
-                        {% get_shop_information_value 'contact-us' as contact_us_slug %}
+                        {% get_shop_information_value 'contact-us' ShopInformation as contact_us_slug %}
                         {% if contact_us_slug %}
                         <li><a href="{% url 'static_pages:static_page_detail' slug_page_detail=contact_us_slug %}" class="text-gray-400 hover:text-white transition-colors">تماس با ما</a></li>
                         {% endif %}
@@ -142,15 +142,15 @@
                         {% comment %} <li><a href="javascript:void(0);" class="text-gray-400 hover:text-white transition-colors"></a></li> {% endcomment %}
                     </ul>
                     <div class="flex space-x-4 mt-6">
-                        {% get_shop_information_value 'instagram' as instagram_id %}
+                        {% get_shop_information_value 'instagram' ShopInformation as instagram_id %}
                         {% if instagram_id %}
                             <a href="https://instagram.com/{{ instagram_id }}" class="text-gray-400 hover:text-white text-xl" target="_blank"><i class="fab fa-instagram"></i></a>
                         {% endif %}
-                        {% get_shop_information_value 'telegram-channel' as telegram_channel_id %}
+                        {% get_shop_information_value 'telegram-channel' ShopInformation as telegram_channel_id %}
                         {% if telegram_channel_id %}
                             <a href="https://t.me/{{ telegram_channel_id }}" class="text-gray-400 hover:text-white text-xl" target="_blank"><i class="fab fa-telegram"></i></a>
                         {% endif %}
-                        {% get_shop_information_value 'x(twitter)' as twitter_id %}
+                        {% get_shop_information_value 'x(twitter)' ShopInformation as twitter_id %}
                         {% if twitter_id %}
                             <a href="https://x.com/{{ twitter_id }}" class="text-gray-400 hover:text-white text-xl" target="_blank"><i class="fab fa-twitter"></i></a>
                         {% endif %}

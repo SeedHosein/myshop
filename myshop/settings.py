@@ -89,6 +89,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'chat.context_processors.chat_session_context',
+                'core.context_processors.shop_information',
             ],
         },
     },
