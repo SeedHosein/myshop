@@ -17,6 +17,8 @@ from decouple import config
 
 SHOP_NAME = config('SHOP_NAME')
 
+ALLOW_ANONYMOUS_COMMENTS_BLOG = config('ALLOW_ANONYMOUS_COMMENTS_BLOG', default=False, cast=bool)
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -47,7 +49,8 @@ INSTALLED_APPS = [
     'django.contrib.sites',
 
     'hitcount',
-    'channels', # Add channels here
+    'channels',
+    'mptt',
     'jalali_date',
     'django_ckeditor_5',
 
@@ -116,16 +119,32 @@ if DATABASES.get('default', {}).get('ENGINE') == 'django.db.backends.sqlite3':
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": config('REDIS_LOCATION'),
+        "LOCATION": config('REDIS_LOCATION_DEFAULT'),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
         "KEY_PREFIX": config('SHOP_NAME_ENGLISH').replace(" ", "")
+    },
+    "session": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": config('REDIS_LOCATION_SESSION'),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+        "KEY_PREFIX": config('SHOP_NAME_ENGLISH').replace(" ", "")+":session"
+    },
+    "blog": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": config('REDIS_LOCATION_BLOG'),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+        "KEY_PREFIX": config('SHOP_NAME_ENGLISH').replace(" ", "")+":blog"
     }
 }
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-SESSION_CACHE_ALIAS = "default"
+SESSION_CACHE_ALIAS = "session"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

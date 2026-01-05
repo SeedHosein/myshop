@@ -1,105 +1,186 @@
 {% extends "base.html" %}
 {% load static %}
+{% load cache %}
 {% load jalali_tags %}
+{% load blog_extras %}
 
-{% block title %}{{ post.title }} - وبلاگ{% endblock %}
+{% block title %}{{ post.title }} • وبلاگ{% endblock title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/blog_detail_styles.css' %}">
+{% endblock extra_head %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-8 offset-lg-2">
+{% cache 3600 blog_post post using="blog" %}
+<main class="mx-auto px-4 pt-1 pb-8">
+    <!-- Breadcrumbs -->
+    <nav class="mb-1 text-sm text-gray-500" aria-label="Breadcrumb">
+        <ol class="list-none p-0 inline-flex">
+            <li class="flex items-center">
+                <a href="{% url 'core:home' %}" class="hover:text-primary-red">خانه</a>
+                <i class="fas fa-chevron-left mx-2"></i>
+            </li>
+            <li class="flex items-center">
+                <a href="{% url 'blog:post_list' %}" class="hover:text-primary-red">وبلاگ</a>
+                <i class="fas fa-chevron-left mx-2"></i>
+            </li>
+            {% if post.category %}
+                {% blog_category_parents post.category as parents %}
+                {% for cat in parents %}
+                <li class="flex items-center">
+                    <a href="{{ cat.get_absolute_url }}" class="hover:text-primary-red">{{ cat.name }}</a>
+                    <i class="fas fa-chevron-left mx-2"></i>
+                </li>
+                {% endfor %}
+                <li class="flex items-center">
+                    <a href="{{ post.category.get_absolute_url }}" class="hover:text-primary-red">{{ post.category.name }}</a>
+                    <i class="fas fa-chevron-left mx-2"></i>
+                </li>
+            {% endif %}
+            <li class="flex items-center text-gray-700">
+                {{ post.title }}
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Blog Post Main Section -->
+    <div class="blog-post-main-container bg-white border rounded-lg overflow-hidden shadow-sm p-6 lg:p-8">
         <article>
-            <header class="mb-4">
-                <h1 class="fw-bolder mb-1">{{ post.title }}</h1>
-                <div class="text-muted fst-italic mb-2">
-                    منتشر شده در: {{ post.published_at|to_jalali:"%Y/%m/%d" }} توسط 
-                    {{ post.author.get_full_name|default:post.author.username|default:"ناشناس" }}
+            <header class="mb-6">
+                <h1 class="text-3xl lg:text-4xl font-extrabold text-gray-800 mb-3">{{ post.title }}</h1>
+                <div class="text-muted text-sm italic mb-4 flex items-center flex-wrap gap-2">
+                    <span>منتشر شده در: {{ post.published_at|to_jalali:"%Y/%m/%d" }}</span>
+                    <span>توسط: {{ post.author.get_full_name|default:post.author.username|default:"ناشناس" }}</span>
                     {% if post.category %}
-                    | دسته: <a href="{% url 'blog:post_list_by_category' post.category.slug %}" class="text-decoration-none">{{ post.category.name }}</a>
+                    <span>| دسته: <a href="{{ post.category.get_absolute_url }}" class="text-primary-red hover:underline">{{ post.category.name }}</a></span>
                     {% endif %}
+                    <span class="flex items-center gap-1"><i class="fas fa-eye"></i> {{ hitcount.total_hits }} بازدید </span>
                 </div>
                 {% if post.get_tags_list %}
-                    <div class="mb-2">
-                        برچسب‌ها: 
+                    <div class="flex flex-wrap gap-2 mt-3">
                         {% for tag in post.get_tags_list %}
-                            <span class="badge bg-secondary">{{ tag }}</span>
+                            <span class="badge px-3 py-1 rounded-full text-xs">{{ tag }}</span>
                         {% endfor %}
                     </div>
                 {% endif %}
             </header>
             {% if post.image %}
-            <figure class="mb-4">
-                <img class="img-fluid rounded" src="{{ post.image.url }}" alt="{{ post.title }}" style="width: 100%; max-height: 400px; object-fit: cover;"/>
+            <figure class="mb-6 rounded-lg overflow-hidden">
+                <img class="w-full h-auto object-cover" src="{{ post.image.url }}" alt="{{ post.title }}"/>
             </figure>
             {% endif %}
-            <section class="mb-5">
-                {{ post.content|safe }} {# CKEditor content is already HTML safe #}
+            <section class="mb-8 ck-content leading-loose text-gray-700">
+                {{ post.content|safe }}
             </section>
         </article>
+    </div>
+{% endcache %}
 
-        <hr>
+    <!-- Comments Section (Tabs style) -->
+    <div class="post-blog-details-tabs mt-8"> {# Reusing product-details-tabs style for consistency #}
+        <div class="tabs-nav-container">
+            <div class="tabs-nav" id="tabs-nav-blog"> {# Unique ID for blog tabs #}
+                <button class="tab-link active" data-tab="comments-tab">نظرات ({{ comments.count }})</button>
+            </div>
+        </div>
+        <div class="tabs-content">
+            <div id="comments-tab" class="tab-panel active">
+                <div id="comments" class="comments-section">
+                    <h3 class="text-xl font-bold mb-4">دیدگاه خود را اضافه کنید</h3>
 
-        <!-- Comments section-->
-        <section class="mb-5" id="comments">
-            <div class="card bg-light">
-                <div class="card-body">
-                    <h4 class="mb-4">نظرات ({{ comments.count }})</h4>
-                    
                     <!-- Comment form -->
-                    {% if request.user.is_authenticated or site_settings.allow_anonymous_comments %} {# Assuming site_settings for anonymous comments #}
-                    <form method="post" action="{% url 'blog:add_blog_comment' post_slug=post.slug %}" id="comment-form" class="mb-4">
+                    {% if request.user.is_authenticated or ALLOW_ANONYMOUS_COMMENTS_BLOG %} {# Assuming site_settings for anonymous comments #}
+                    <form method="post" action="{% url 'blog:add_blog_comment' post_slug=post.slug %}" id="comment-form" class="mb-8 p-6 bg-gray-50 rounded-lg shadow-sm">
                         {% csrf_token %}
-                        {{ comment_form.media }} {# For CKEditor or other rich text comment forms if used #}
-                        
+
                         {% if not request.user.is_authenticated %}
-                            <div class="mb-3">
-                                <label for="id_name" class="form-label">نام</label>
+                            <div class="mb-4">
+                                <label for="id_name" class="block text-sm font-medium text-gray-700 mb-1">نام</label>
                                 {{ comment_form.name }}
                                 {% if comment_form.name.errors %}
-                                    <div class="invalid-feedback d-block">{{ comment_form.name.errors|first }}</div>
+                                    <p class="text-red-500 text-xs italic mt-1">{{ comment_form.name.errors|first }}</p>
                                 {% endif %}
                             </div>
-                            <div class="mb-3">
-                                <label for="id_email" class="form-label">ایمیل (نمایش داده نمی‌شود)</label>
+                            <div class="mb-4">
+                                <label for="id_email" class="block text-sm font-medium text-gray-700 mb-1">ایمیل (نمایش داده نمی‌شود)</label>
                                 {{ comment_form.email }}
                                 {% if comment_form.email.errors %}
-                                    <div class="invalid-feedback d-block">{{ comment_form.email.errors|first }}</div>
+                                    <p class="text-red-500 text-xs italic mt-1">{{ comment_form.email.errors|first }}</p>
                                 {% endif %}
                             </div>
                         {% endif %}
 
-                        <div class="mb-3">
-                            <label for="id_comment" class="form-label">نظر شما</label>
+                        <div class="mb-4">
+                            <label for="id_comment" class="block text-sm font-medium text-gray-700 mb-1">نظر شما</label>
                             {{ comment_form.comment }}
                             {% if comment_form.comment.errors %}
-                                <div class="invalid-feedback d-block">{{ comment_form.comment.errors|first }}</div>
+                                <p class="text-red-500 text-xs italic mt-1">{{ comment_form.comment.errors|first }}</p>
                             {% endif %}
                         </div>
-                        <button class="btn btn-primary" type="submit">ثبت نظر</button>
+                        <button class="btn-primary" type="submit">ثبت نظر</button>
                     </form>
                     {% else %}
-                        <p><a href="{% url 'accounts:login' %}?next={{ request.path }}">ورود</a> برای ثبت نظر.</p>
+                        <p class="text-gray-700 mb-4">لطفا <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="text-primary-red hover:underline">وارد شوید</a> تا دیدگاه خود را ثبت کنید.</p>
                     {% endif %}
 
-                    <!-- Single comment -->
-                    {% for comment in comments %}
-                    <div class="d-flex mb-4">
-                        <div class="flex-shrink-0"><img class="rounded-circle" src="{% static 'core/images/default_avatar.png' %}" alt="User Avatar" width="50"/></div> {# Placeholder avatar #}
-                        <div class="ms-3">
-                            <div class="fw-bold">{{ comment.name|default:"ناشناس" }}</div>
-                            <div class="text-muted fst-italic mb-1 small">{{ comment.created_at|to_jalali:"%Y/%m/%d" }}</div>
-                            {{ comment.comment|linebreaksbr }}
+                    <h3 class="text-xl font-bold mb-4">نظرات کاربران ({{ comments.count }})</h3>
+                    <div class="comments-list">
+                    {% cache 3600 blog_comment post using="blog" %}
+                        {% for comment in comments %}
+                        <div class="comment-item bg-white border border-gray-100 rounded-lg p-4 shadow-sm flex items-start gap-3 mb-4">
+                            <div class="flex-shrink-0">
+                                <img class="rounded-full" src="{% static 'images/default_avatar.png' %}" alt="تصویر {{ comment.name|default:"ناشناس" }}" width="40" height="40"/>
+                            </div>
+                            <div class="flex-grow">
+                                <div class="comment-header flex justify-between items-center mb-1">
+                                    <span class="font-semibold text-gray-800">{{ comment.name|default:"ناشناس" }}</span>
+                                    <span class="text-muted text-xs italic">{{ comment.created_at|to_jalali:"%Y/%m/%d" }}</span>
+                                </div>
+                                <p class="text-gray-700 text-sm">{{ comment.comment|linebreaksbr }}</p>
+                            </div>
                         </div>
+                        {% empty %}
+                        <p class="text-gray-600 text-center py-4">هنوز نظری ثبت نشده است. برای ثبت نظر اولین نفر باشید!</p>
+                        {% endfor %}
+                    {% endcache %}
                     </div>
-                    {% empty %}
-                    <p>هنوز نظری ثبت نشده است. برای ثبت نظر اولین نفر باشید!</p>
-                    {% endfor %}
                 </div>
             </div>
-        </section>
+        </div>
     </div>
-</div>
+</main>
 
-{# Add a placeholder for a partial template for the comment form if AddBlogCommentView uses one explicitly #}
-{# {% include 'blog/partials/add_comment_form.html' with form=comment_form post_slug=post.slug %} #}
 
-{% endblock %} 
+{% endblock content %}
+
+{% comment %} {% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabsNav = document.getElementById('tabs-nav-blog');
+        if (tabsNav) {
+            tabsNav.addEventListener('click', function(event) {
+                const clickedTab = event.target.closest('.tab-link');
+                if (!clickedTab) return;
+
+                event.preventDefault();
+
+                // Remove 'active' from all tab links and panels
+                tabsNav.querySelectorAll('.tab-link').forEach(link => {
+                    link.classList.remove('active');
+                });
+                document.querySelectorAll('.tab-panel').forEach(panel => {
+                    panel.classList.remove('active');
+                });
+
+                // Add 'active' to the clicked tab link and its corresponding panel
+                clickedTab.classList.add('active');
+                const targetTabId = clickedTab.dataset.tab;
+                const targetPanel = document.getElementById(targetTabId);
+                if (targetPanel) {
+                    targetPanel.classList.add('active');
+                }
+            });
+        }
+    });
+</script>
+{% endblock extra_scripts %} {% endcomment %}

@@ -1,6 +1,10 @@
+import copy
+import uuid
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
+from django.utils import timezone
 from hitcount.models import HitCount
+from mptt.admin import MPTTModelAdmin
 
 from .models import BlogCategory, BlogPost, BlogComment
 
@@ -11,11 +15,17 @@ class HitCountInline(GenericTabularInline):
     readonly_fields = ('hits',)
 
 @admin.register(BlogCategory)
-class BlogCategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug')
+class BlogCategoryAdmin(MPTTModelAdmin):
+    list_display = ('name', 'slug', 'parent')
     search_fields = ('name',)
     prepopulated_fields = {'slug': ('name',)}
+    mptt_indent_field = "name"
     inlines = [HitCountInline,]
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'slug', 'parent')
+        }),
+    )
 
 @admin.register(BlogPost)
 class BlogPostAdmin(admin.ModelAdmin):
@@ -26,7 +36,7 @@ class BlogPostAdmin(admin.ModelAdmin):
     list_editable = ('is_published',)
     readonly_fields = ('created_at', 'updated_at') # 'published_at' is auto-set by model logic
     date_hierarchy = 'published_at' # Adds date navigation drill-down
-    actions = ['publish_posts', 'unpublish_posts']
+    actions = ['publish_posts', 'publish_time_to_now_posts', 'unpublish_posts', 'copy_posts']
     inlines = [HitCountInline,]
     fieldsets = (
         (None, {
@@ -53,13 +63,29 @@ class BlogPostAdmin(admin.ModelAdmin):
 
     def publish_posts(self, request, queryset):
         queryset.update(is_published=True)
-        # Potentially call .save() on each if published_at logic needs to trigger for existing null dates
-        # for post in queryset: post.save() 
-    publish_posts.short_description = "انتشار پست های انتخاب شده"
+    publish_posts.short_description = "همگانی (پابلیش) پست های انتخاب شده"
+
+    def publish_time_to_now_posts(self, request, queryset):
+        queryset.update(published_at=timezone.now())
+    publish_time_to_now_posts.short_description = "تنظیم تاریخ و ساعت انتشار الآن برای پست های انتخاب شده"
 
     def unpublish_posts(self, request, queryset):
         queryset.update(is_published=False, published_at=None) # Model logic should handle published_at=None
     unpublish_posts.short_description = "لغو انتشار پست های انتخاب شده"
+
+    def copy_posts(self, request, queryset):
+        for obj in queryset:
+            obj_copy = copy.copy(obj)
+            obj_copy.pk = None
+            obj_copy.is_published = False
+            obj_copy.created_at = None
+            obj_copy.updated_at = None
+            obj_copy.slug = f"{obj_copy.slug}-{uuid.uuid4().hex[:8]}"
+            # Save the new object
+            obj_copy.save()
+        # Optional: Add a success message for the admin user
+        self.message_user(request, f"تعداد {queryset.count()} پست به صورت منتشر نشده کپی شد.\nقبل از انتشار اسلاگ ها را برسی کنید.")
+    copy_posts.short_description = "ایجاد کپی از پست های انتخاب شده"
 
 @admin.register(BlogComment)
 class BlogCommentAdmin(admin.ModelAdmin):

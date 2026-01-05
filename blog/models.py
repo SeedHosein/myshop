@@ -4,26 +4,46 @@ from django.utils.text import slugify
 from django.utils import timezone
 from django.urls import reverse
 from django.contrib.contenttypes.fields import GenericRelation
-# from ckeditor.fields import RichTextField # Old import
-from django_ckeditor_5.fields import CKEditor5Field # New import for CKEditor 5
+from django_ckeditor_5.fields import CKEditor5Field
 from hitcount.models import HitCountMixin, HitCount
+from mptt.models import MPTTModel, TreeForeignKey
 
-class BlogCategory(models.Model, HitCountMixin):
+
+class BlogCategory(MPTTModel, HitCountMixin):
     name = models.CharField(max_length=100, unique=True, verbose_name="نام دسته بندی وبلاگ")
     slug = models.SlugField(max_length=120, unique=True, allow_unicode=True, verbose_name="اسلاگ (نامک)")
-    
+    parent = TreeForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='children',
+        verbose_name="دسته والد"
+    )
+
     hit_count_generic = GenericRelation(
         HitCount, object_id_field='object_pk',
         related_query_name='hit_count_generic_relation'
     )
 
+    class MPTTMeta:
+        order_insertion_by = ['name']
+
     class Meta:
         verbose_name = "دسته بندی وبلاگ"
         verbose_name_plural = "دسته بندی های وبلاگ"
-        ordering = ['name']
+        ordering = ['tree_id', 'lft'] # MPTT ordering
 
     def __str__(self):
-        return self.name
+        full_path = [self.name]
+        k = self.parent
+        while k is not None:
+            full_path.append(k.name)
+            k = k.parent
+        return ' -> '.join(full_path[::-1])
+
+    def get_absolute_url(self):
+        return reverse('blog:post_list_by_category', kwargs={'category_slug': self.slug})
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -139,6 +159,6 @@ class BlogComment(models.Model):
 
     def save(self, *args, **kwargs):
         if self.user:
-            self.name = self.user.get_full_name() or self.user.email # Or however you get user's display name
+            self.name = self.user.get_full_name or self.user.email # Or however you get user's display name
             self.email = self.user.email
         super().save(*args, **kwargs)

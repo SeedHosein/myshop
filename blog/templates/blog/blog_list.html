@@ -1,98 +1,129 @@
 {% extends "base.html" %}
 {% load static %}
 {% load jalali_tags %}
+{% load blog_extras %}
 
 {% block title %}
-    {% if category %}
-        وبلاگ - {{ category.name }}
+    {% if current_category %}
+        {{ current_category.name }} • وبلاگ
     {% else %}
         وبلاگ
     {% endif %}
 {% endblock %}
 
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/blog_list_styles.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-3">
-            <h4>دسته‌بندی‌ها</h4>
-            <ul class="list-group">
-                <li class="list-group-item {% if not category %}active{% endif %}">
-                    <a href="{% url 'blog:post_list' %}" class="text-decoration-none {% if not category %}text-white{% else %}text-dark{% endif %}">همه‌ی پست‌ها</a>
-                </li>
-                {% for cat in categories %}
-                <li class="list-group-item {% if category and category.slug == cat.slug %}active{% endif %}">
-                    <a href="{% url 'blog:post_list_by_category' category_slug=cat.slug %}" class="text-decoration-none {% if category and category.slug == cat.slug %}text-white{% else %}text-dark{% endif %}">
-                        {{ cat.name }}
-                    </a>
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
-        <div class="col-md-9">
-            <h2>
-                {% if category %}
-                    پست‌ها در دسته‌ی {{ category.name }}
+<main class="mx-auto px-4 py-8">
+    <div class="blog-page-container">
+        <!-- Sidebar for Categories -->
+        <aside class="blog-sidebar">
+            {% if categories %}
+            <h3 class="text-xl font-bold mb-6">دسته‌بندی‌ها</h3>
+            <div class="filter-group">
+                <ul class="category-accordion">
+                    <li class="category-item">
+                        <a href="{% url 'blog:post_list' %}" class="filter-link{% if not current_category %} active{% endif %}">همه‌ی پست‌ها</a>
+                    </li>
+                    {% for category in categories %}
+                        {% blog_category_children category current_category=current_category %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </aside>
+
+        <!-- Main Content for Blog Posts -->
+        <div class="blog-posts-content">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">
+                {% if current_category %}
+                    دسته‌بندی {{ current_category.name }}
                 {% else %}
                     آخرین پست‌های وبلاگ
                 {% endif %}
             </h2>
-            <hr>
+
             {% if posts %}
+            <div class="blog-grid">
                 {% for post in posts %}
-                <div class="card mb-3">
-                    <div class="row g-0">
-                        {% if post.image %}
-                        <div class="col-md-4">
-                            <a href="{{ post.get_absolute_url }}">
-                                <img src="{{ post.image.url }}" class="img-fluid rounded-start" alt="{{ post.title }}" style="max-height: 200px; object-fit: cover;">
-                            </a>
-                        </div>
-                        {% endif %}
-                        <div class="col-md-{% if post.image %}8{% else %}12{% endif %}">
-                            <div class="card-body">
-                                <h5 class="card-title"><a href="{{ post.get_absolute_url }}" class="text-decoration-none text-dark">{{ post.title }}</a></h5>
-                                <p class="card-text"><small class="text-muted">
-                                    نویسنده: {{ post.author.get_full_name|default:post.author.username|default:"N/A" }} | 
-                                    منتشر شده در: {{ post.published_at|to_jalali:"%Y/%m/%d" }} | 
-                                    دسته: {{ post.category.name|default:"Uncategorized" }}
-                                </small></p>
-                                <p class="card-text">{{ post.content|striptags|truncatewords_html:30|safe }}</p>
-                                <a href="{{ post.get_absolute_url }}" class="btn btn-primary btn-sm">ادامه مطلب</a>
-                            </div>
+                <div class="blog-card bg-white border rounded-lg overflow-hidden flex flex-col">
+                    {% if post.image %}
+                    <a href="{{ post.get_absolute_url }}">
+                        <img src="{{ post.image.url }}" class="w-full h-48 object-cover" alt="{{ post.title }} image">
+                    </a>
+                    {% endif %}
+                    <div class="px-4 flex flex-col flex-grow-1">
+                        <h3 class="font-semibold text-gray-800 h-2">
+                            <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+                        </h3>
+                        <p class="text-gray-600 text-sm my-2 flex-grow-1">
+                            {{ post.content|striptags|truncatewords_html:30|safe }}
+                        </p>
+                        <div class="mt-auto pt-3 border-t border-gray-100">
+                            {% if post.author.get_full_name %}
+                            <small class="text-muted text-xs block">
+                                نویسنده: {{ post.author.get_full_name }}
+                            </small>
+                            {% endif %}
+                            <small class="text-muted text-xs block">
+                                منتشر شده در: {{ post.published_at|to_jalali:"%Y/%m/%d" }}
+                                {% if post.category %}
+                                | دسته: <a href="{{ post.category.get_absolute_url }}" class="hover:text-primary-red">{{ post.category.name }}</a>
+                                {% endif %}
+                            </small>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
+            </div>
 
-                {% if is_paginated %}
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center">
-                        {% if page_obj.has_previous %}
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">قبلی</a></li>
-                        {% else %}
-                        <li class="page-item disabled"><span class="page-link">قبلی</span></li>
-                        {% endif %}
-
-                        {% for num in page_obj.paginator.page_range %}
-                            {% if page_obj.number == num %}
-                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-                            {% endif %}
-                        {% endfor %}
-
-                        {% if page_obj.has_next %}
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">بعدی</a></li>
-                        {% else %}
-                        <li class="page-item disabled"><span class="page-link">بعدی</span></li>
-                        {% endif %}
-                    </ul>
-                </nav>
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation" class="pagination mt-12">
+                {% if page_obj.has_previous %}
+                    <a class="page-item" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="قبلی">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                {% else %}
+                    <a class="page-item disabled">&laquo;</a>
                 {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <a class="page-item active" aria-current="page">{{ num }}</a>
+                    {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                        <a class="page-item" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                    {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                        <a class="page-item" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                    {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+                        {% if page_obj.number|add:'-3' == num and num != 1 or page_obj.number|add:'3' == num and num != page_obj.paginator.num_pages %}
+                        <a class="page-item disabled">...</a>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a class="page-item" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="بعدی">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                {% else %}
+                    <span class="page-item disabled">&raquo;</span>
+                {% endif %}
+            </nav>
+            {% endif %}
+
             {% else %}
-                <p>هیچ پستی یافت نشد.</p>
+            <div class="bg-white p-8 rounded-lg shadow-sm text-center">
+                <p class="text-lg text-gray-700">هیچ پستی برای نمایش یافت نشد.</p>
+            </div>
             {% endif %}
         </div>
     </div>
-</div>
-{% endblock %} 
+</main>
+{% endblock content %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/blog_list.js' %}"></script>
+{% endblock extra_scripts %}

@@ -7,15 +7,31 @@ class BlogCommentForm(forms.ModelForm):
         model = BlogComment
         fields = ['name', 'email', 'comment'] # Fields visible to the user
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام شما (اگر عضو نیستید)'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'ایمیل شما (اگر عضو نیستید, نمایش داده نمیشود)'}),
-            'comment': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'دیدگاه خود را بنویسید...'}),
+            'name': forms.TextInput(
+                attrs={
+                    'class': 'form-control w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-red',
+                    'placeholder': 'نام شما (اگر عضو نیستید)'
+                    }
+                ),
+            'email': forms.EmailInput(
+                attrs={
+                    'class': 'form-control w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-red', 
+                    'placeholder': 'ایمیل شما (اگر عضو نیستید, نمایش داده نمیشود)'
+                    }
+                ),
+            'comment': forms.Textarea(
+                attrs={
+                    'class': 'form-control w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-red', 
+                    'rows': 4, 
+                    'placeholder': 'دیدگاه خود را بنویسید...'
+                    }
+                ),
         }
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None) # Allow passing the user to the form and store it
         super().__init__(*args, **kwargs)
-        
+
         # If the user is authenticated, name and email can be pre-filled or hidden
         if self.user and self.user.is_authenticated:
             self.fields['name'].widget = forms.HiddenInput()
@@ -26,6 +42,9 @@ class BlogCommentForm(forms.ModelForm):
             # For anonymous users, ensure name and email are required
             self.fields['name'].required = True
             self.fields['email'].required = True
+            self.fields['name'].widget.attrs.update({'class': self.fields['name'].widget.attrs.get('class', '') + ' form-input'})
+            self.fields['email'].widget.attrs.update({'class': self.fields['email'].widget.attrs.get('class', '') + ' form-input'})
+
     def clean_name(self):
         name = self.cleaned_data.get('name')
         if not (self.user and self.user.is_authenticated):
@@ -38,4 +57,4 @@ class BlogCommentForm(forms.ModelForm):
             if not email:
                 raise ValidationError('ایمیل برای کاربران مهمان الزامی است.')
         return email
-    
+

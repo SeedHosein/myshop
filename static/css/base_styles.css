@@ -596,6 +596,10 @@
   content: "\f1d8";
 }
 
+.fa-eye:before {
+  content: "\f06e";
+}
+
 /* --- Custom & Utility Styles (Replicating Tailwind) --- */
 :root {
   --primary-red: #e53935;
@@ -1638,9 +1642,18 @@ a {
     text-align: right;
   }
 
+  .lg\:text-4xl {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+  }
+
   .lg\:mx-0 {
     margin-left: 0;
     margin-right: 0;
+  }
+
+  .lg\:p-8 {
+    padding: 2rem;
   }
 }
 

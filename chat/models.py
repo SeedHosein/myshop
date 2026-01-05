@@ -67,5 +67,5 @@ class ChatMessage(models.Model):
     def __str__(self):
         sender_display = "سیستم"
         if self.sender:
-            sender_display = self.sender.get_full_name() or self.sender.email
+            sender_display = self.sender.get_full_name or self.sender.email
         return f"پیام از طرف {sender_display} در جلسه {self.session.id} در {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
