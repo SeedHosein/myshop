@@ -1,7 +1,3 @@
-.h-2 {
-    height: 0.5rem;
-}
-
 .h-48 {
     height: 12rem;
 }
@@ -13,6 +9,11 @@
 
 .mt-auto {
     margin-top: auto;
+}
+
+.my-auto {
+    margin-top: auto;
+    margin-bottom: auto;
 }
 
 .pt-3 {

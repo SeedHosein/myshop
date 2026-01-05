@@ -11,7 +11,6 @@
 {% endblock extra_head %}
 
 {% block content %}
-{% cache 3600 blog_post post using="blog" %}
 <main class="mx-auto px-4 pt-1 pb-8">
     <!-- Breadcrumbs -->
     <nav class="mb-1 text-sm text-gray-500" aria-label="Breadcrumb">
@@ -74,7 +73,6 @@
             </section>
         </article>
     </div>
-{% endcache %}
 
     <!-- Comments Section (Tabs style) -->
     <div class="post-blog-details-tabs mt-8"> {# Reusing product-details-tabs style for consistency #}
